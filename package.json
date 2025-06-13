@@ -1,0 +1,16 @@
+{
+  "name": "daytona-autos-nuevos-kpis",
+  "version": "1.0.0",
+  "description": "Dashboard de KPIs para Autos Nuevos - Grupo Daytona",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Build complete'",
+    "deploy": "gh-pages -d ."
+  },
+  "keywords": ["kpis", "dashboard", "daytona", "autos nuevos", "automotive"],
+  "author": "Grupo Daytona",
+  "license": "MIT",
+  "devDependencies": {
+    "gh-pages": "^6.0.0"
+  }
+}
