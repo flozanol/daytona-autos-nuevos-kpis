@@ -503,18 +503,28 @@ async function connectToAPI() {
     showStatus('loading', 'Conectando con Google Sheets API...');
     
     try {
+        // Verificar configuración
+        if (SPREADSHEET_ID === "TU_NUEVO_SPREADSHEET_ID_AQUI") {
+            throw new Error('⚠️ Debes configurar tu SPREADSHEET_ID en el código.\n\nBusca la línea:\nconst SPREADSHEET_ID = "TU_NUEVO_SPREADSHEET_ID_AQUI";\n\nY reemplaza con tu ID real de Google Sheets.');
+        }
+        
         // Obtener metadata del spreadsheet
         const metadataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?key=${API_KEY}`;
+        console.log('📡 Consultando metadata:', metadataUrl);
         
         const metadataResponse = await fetch(metadataUrl);
         
         if (!metadataResponse.ok) {
-            throw new Error(`Error API: ${metadataResponse.status} - ${metadataResponse.statusText}`);
+            const errorText = await metadataResponse.text();
+            console.error('❌ Error respuesta metadata:', errorText);
+            throw new Error(`Error API: ${metadataResponse.status} - ${metadataResponse.statusText}\n\nVerifica:\n1. SPREADSHEET_ID correcto\n2. Google Sheet público\n3. API_KEY válida`);
         }
         
         const metadata = await metadataResponse.json();
         const sheets = metadata.sheets || [];
         const sheetNames = sheets.map(sheet => sheet.properties.title);
+        
+        console.log('📊 Hojas encontradas:', sheetNames);
         
         // 10 agencias esperadas
         const expectedAgencies = [
@@ -523,14 +533,27 @@ async function connectToAPI() {
             'Acura Interlomas'
         ];
         
-        // Buscar hojas válidas
-        const validSheets = sheetNames.filter(name => 
-            expectedAgencies.includes(name) || 
-            expectedAgencies.some(agency => name.toLowerCase().includes(agency.toLowerCase().split(' ')[0]))
-        );
+        // Buscar hojas válidas (más flexible)
+        const validSheets = sheetNames.filter(name => {
+            const nameLower = name.toLowerCase();
+            return expectedAgencies.some(agency => {
+                const agencyLower = agency.toLowerCase();
+                return nameLower === agencyLower || 
+                       nameLower.includes(agencyLower.split(' ')[0]) ||
+                       agencyLower.includes(nameLower);
+            });
+        });
+        
+        // Si no encuentra las exactas, usar todas las hojas
+        if (validSheets.length === 0) {
+            console.log('⚠️ No se encontraron hojas específicas, usando todas las hojas disponibles');
+            validSheets.push(...sheetNames.filter(name => name && name.trim() !== ''));
+        }
+        
+        console.log('✅ Hojas válidas seleccionadas:', validSheets);
         
         if (validSheets.length === 0) {
-            throw new Error(`No se encontraron hojas de agencias.\nHojas disponibles: ${sheetNames.join(', ')}\nEsperadas: ${expectedAgencies.join(', ')}`);
+            throw new Error(`No se encontraron hojas válidas.\nHojas disponibles: ${sheetNames.join(', ')}\nEsperadas: ${expectedAgencies.join(', ')}`);
         }
         
         // Procesar cada hoja
@@ -540,11 +563,17 @@ async function connectToAPI() {
         
         for (const sheetName of validSheets) {
             try {
+                console.log(`📋 Procesando hoja: ${sheetName}`);
+                
                 const range = `${sheetName}!A:Z`;
                 const dataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}?key=${API_KEY}`;
                 
+                console.log(`📡 Consultando datos: ${dataUrl}`);
+                
                 const dataResponse = await fetch(dataUrl);
                 if (!dataResponse.ok) {
+                    const errorText = await dataResponse.text();
+                    console.error(`❌ Error en hoja ${sheetName}:`, errorText);
                     errors.push(`${sheetName}: Error ${dataResponse.status}`);
                     continue;
                 }
@@ -552,39 +581,70 @@ async function connectToAPI() {
                 const sheetData = await dataResponse.json();
                 
                 if (!sheetData.values || sheetData.values.length < 2) {
-                    errors.push(`${sheetName}: Sin datos suficientes`);
+                    errors.push(`${sheetName}: Sin datos suficientes (${sheetData.values?.length || 0} filas)`);
                     continue;
                 }
+                
+                console.log(`📊 Datos obtenidos para ${sheetName}:`, sheetData.values.length, 'filas');
                 
                 // Procesar datos reales
                 const processedData = processRealSheetData(sheetData.values, sheetName);
                 if (processedData && processedData.kpis.length > 0) {
                     loadedAgencies.push(processedData);
                     successes.push(`✅ ${sheetName}: ${processedData.kpis.length} KPIs cargados`);
+                    console.log(`✅ ${sheetName} procesada exitosamente`);
                 } else {
-                    errors.push(`${sheetName}: Error procesando KPIs`);
+                    errors.push(`${sheetName}: Error procesando KPIs (datos vacíos)`);
+                    console.log(`❌ ${sheetName} falló en procesamiento`);
                 }
                 
             } catch (error) {
+                console.error(`❌ Error procesando ${sheetName}:`, error);
                 errors.push(`${sheetName}: ${error.message}`);
             }
         }
         
-        // Mostrar resultados
+        // Mostrar resultados detallados
+        console.log('📊 Resumen de carga:');
+        console.log('✅ Exitosas:', successes);
+        console.log('❌ Errores:', errors);
+        
         if (loadedAgencies.length > 0) {
             loadedData = loadedAgencies;
             displayResults(loadedAgencies);
             showStatus('success', `Datos REALES cargados: ${loadedAgencies.length} agencias desde Google Sheets`);
             
-            alert(`🎉 ¡CONEXIÓN API EXITOSA!\n\n📊 Agencias de Autos Nuevos cargadas:\n${successes.join('\n')}\n\n✅ ${loadedAgencies.length} agencias conectadas con datos REALES`);
+            // Mostrar detalles en alert
+            const alertMessage = `🎉 ¡CONEXIÓN API EXITOSA!\n\n📊 Agencias de Autos Nuevos cargadas:\n${successes.join('\n')}\n\n✅ ${loadedAgencies.length} agencias conectadas con datos REALES`;
+            
+            if (errors.length > 0) {
+                alertMessage += `\n\n⚠️ Algunas hojas tuvieron errores:\n${errors.slice(0, 3).join('\n')}${errors.length > 3 ? '\n...' : ''}`;
+            }
+            
+            alert(alertMessage);
         } else {
-            throw new Error(`No se pudieron cargar datos reales.\nErrores: ${errors.join(', ')}`);
+            throw new Error(`No se pudieron cargar datos reales.\n\nErrores encontrados:\n${errors.join('\n')}\n\nVerifica:\n1. Formato de datos en las hojas\n2. Nombres de columnas\n3. Datos numéricos válidos`);
         }
         
     } catch (error) {
         console.error('❌ Error completo en API:', error);
         showStatus('error', `Error API: ${error.message}`);
-        alert(`❌ Error conectando con Google Sheets:\n${error.message}\n\n¿Quieres cargar datos de demostración?`);
+        
+        // Mensaje de error más útil
+        let errorMessage = `❌ Error conectando con Google Sheets:\n${error.message}`;
+        
+        if (error.message.includes('SPREADSHEET_ID')) {
+            errorMessage += '\n\n💡 Tip: Abre tu Google Sheet y copia el ID de la URL';
+        } else if (error.message.includes('403') || error.message.includes('404')) {
+            errorMessage += '\n\n💡 Tip: Asegúrate de que el Google Sheet sea público';
+        }
+        
+        errorMessage += '\n\n¿Quieres cargar datos de demostración en su lugar?';
+        
+        const loadDemo = confirm(errorMessage);
+        if (loadDemo) {
+            loadDemo();
+        }
     }
 }
 
@@ -595,62 +655,176 @@ function processRealSheetData(values, agencyName) {
             throw new Error('Datos insuficientes en la hoja');
         }
         
+        console.log(`📊 Procesando ${agencyName}:`, values.length, 'filas');
+        
         const headers = values[0];
         const rows = values.slice(1);
         
-        // Buscar columna de KPI
-        const kpiColumnIndex = headers.findIndex(header => 
-            header && (
-                header.toLowerCase().trim().includes('kpi') || 
-                header.toLowerCase().trim().includes('indicador') ||
-                header.toLowerCase().trim().includes('metrica') ||
-                header.toLowerCase().trim().includes('nombre')
-            )
-        );
+        console.log(`🔍 Headers encontrados:`, headers);
         
-        if (kpiColumnIndex === -1) {
-            throw new Error('No se encontró columna de KPI');
+        // Buscar columna de KPI (más flexible)
+        let kpiColumnIndex = -1;
+        
+        // Intentar encontrar columna de KPI
+        for (let i = 0; i < headers.length; i++) {
+            const header = headers[i];
+            if (header && typeof header === 'string') {
+                const headerLower = header.toLowerCase().trim();
+                if (headerLower.includes('kpi') || 
+                    headerLower.includes('indicador') ||
+                    headerLower.includes('metrica') ||
+                    headerLower.includes('nombre') ||
+                    headerLower.includes('concepto') ||
+                    headerLower === 'a' ||
+                    i === 0) { // Si es la primera columna
+                    kpiColumnIndex = i;
+                    break;
+                }
+            }
         }
         
-        // Buscar columnas de meses
+        // Si no encuentra, usar la primera columna
+        if (kpiColumnIndex === -1) {
+            kpiColumnIndex = 0;
+            console.log('⚠️ Usando primera columna como KPI');
+        }
+        
+        console.log(`📋 Columna KPI encontrada en índice: ${kpiColumnIndex}`);
+        
+        // Buscar columnas de meses (más flexible)
         const monthColumns = [];
         const monthNames = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 
                           'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+        const monthShort = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 
+                           'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+        const monthNumbers = ['01', '02', '03', '04', '05', '06', 
+                             '07', '08', '09', '10', '11', '12'];
         
         headers.forEach((header, index) => {
-            if (header) {
+            if (header && typeof header === 'string' && index !== kpiColumnIndex) {
                 const headerLower = header.toLowerCase().trim();
-                const monthMatch = monthNames.find(month => headerLower.includes(month));
+                
+                // Buscar mes completo
+                let monthMatch = monthNames.find(month => headerLower.includes(month));
                 if (monthMatch) {
                     monthColumns.push({
                         index: index,
-                        month: monthMatch.charAt(0).toUpperCase() + monthMatch.slice(1)
+                        month: monthMatch.charAt(0).toUpperCase() + monthMatch.slice(1),
+                        originalHeader: header
                     });
+                    return;
                 }
+                
+                // Buscar mes abreviado
+                monthMatch = monthShort.find((month, idx) => headerLower.includes(month) ? monthNames[idx] : null);
+                if (monthMatch) {
+                    const fullMonth = monthNames[monthShort.indexOf(monthMatch)];
+                    monthColumns.push({
+                        index: index,
+                        month: fullMonth.charAt(0).toUpperCase() + fullMonth.slice(1),
+                        originalHeader: header
+                    });
+                    return;
+                }
+                
+                // Buscar números de mes
+                monthNumbers.forEach((num, idx) => {
+                    if (headerLower.includes(num) || headerLower.includes((idx + 1).toString())) {
+                        monthColumns.push({
+                            index: index,
+                            month: monthNames[idx].charAt(0).toUpperCase() + monthNames[idx].slice(1),
+                            originalHeader: header
+                        });
+                    }
+                });
             }
         });
         
+        // Si no encuentra meses, usar todas las columnas después de la primera
         if (monthColumns.length === 0) {
-            throw new Error('No se encontraron columnas de meses');
+            console.log('⚠️ No se encontraron meses específicos, usando todas las columnas numéricas');
+            for (let i = kpiColumnIndex + 1; i < headers.length; i++) {
+                if (headers[i]) {
+                    monthColumns.push({
+                        index: i,
+                        month: headers[i].toString().trim() || `Columna_${i}`,
+                        originalHeader: headers[i]
+                    });
+                }
+            }
+        }
+        
+        console.log(`📅 Columnas de meses encontradas:`, monthColumns);
+        
+        if (monthColumns.length === 0) {
+            throw new Error('No se encontraron columnas de datos');
+        }
+        
+        // Función para convertir valores
+        function parseValue(value) {
+            if (value === null || value === undefined || value === '') {
+                return 0;
+            }
+            
+            // Si ya es un número
+            if (typeof value === 'number') {
+                return isNaN(value) ? 0 : value;
+            }
+            
+            // Si es string, limpiar y convertir
+            if (typeof value === 'string') {
+                // Remover espacios, comas, símbolos de moneda
+                let cleanValue = value.toString()
+                    .replace(/[\s,\$€£¥₹]/g, '')
+                    .replace(/[()]/g, '')
+                    .trim();
+                
+                // Si está vacío después de limpiar
+                if (cleanValue === '' || cleanValue === '-') {
+                    return 0;
+                }
+                
+                // Intentar convertir a número
+                const numValue = parseFloat(cleanValue);
+                return isNaN(numValue) ? 0 : numValue;
+            }
+            
+            return 0;
         }
         
         // Procesar KPIs
         const kpis = [];
         const availableMonths = monthColumns.map(col => col.month);
         
-        rows.forEach(row => {
+        console.log(`🔄 Procesando ${rows.length} filas de datos...`);
+        
+        rows.forEach((row, rowIndex) => {
+            if (!row || row.length === 0) return;
+            
             const kpiName = row[kpiColumnIndex];
-            if (kpiName && kpiName.trim()) {
-                const kpi = { name: kpiName.trim() };
+            if (kpiName && kpiName.toString().trim()) {
+                const kpi = { name: kpiName.toString().trim() };
                 
                 monthColumns.forEach(monthCol => {
-                    const value = row[monthCol.index];
-                    kpi[monthCol.month] = value && !isNaN(value) ? Number(value) : 0;
+                    const rawValue = row[monthCol.index];
+                    const parsedValue = parseValue(rawValue);
+                    kpi[monthCol.month] = parsedValue;
+                    
+                    // Log para debugging
+                    if (kpiName.toLowerCase().includes('utilidad') && parsedValue !== 0) {
+                        console.log(`💰 ${kpiName} - ${monthCol.month}: ${rawValue} → ${parsedValue}`);
+                    }
                 });
                 
                 kpis.push(kpi);
             }
         });
+        
+        console.log(`✅ ${agencyName} procesada: ${kpis.length} KPIs`);
+        
+        // Debug: mostrar algunos KPIs procesados
+        const sampleKpis = kpis.slice(0, 3);
+        console.log(`📋 Muestra de KPIs procesados:`, sampleKpis);
         
         return {
             agency: agencyName,
@@ -659,7 +833,7 @@ function processRealSheetData(values, agencyName) {
         };
         
     } catch (error) {
-        console.error(`Error procesando ${agencyName}:`, error);
+        console.error(`❌ Error procesando ${agencyName}:`, error);
         return null;
     }
 }
