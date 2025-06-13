@@ -124,6 +124,13 @@
         tr:hover {
             background: rgba(255, 255, 255, 0.05);
         }
+        
+        .highest-value {
+            background: rgba(34, 197, 94, 0.2) !important;
+            color: #22c55e !important;
+            font-weight: 600;
+            border: 1px solid rgba(34, 197, 94, 0.3) !important;
+        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -414,11 +421,41 @@ let allMonths = [];
 let singleSelectedAgency = '';
 let singleSelectedMonths = [];
 
-// API Configuration - CAMBIAR AQUÍ TU SPREADSHEET_ID
+// API Configuration - CONFIGURADO CON TU SPREADSHEET_ID
 const API_KEY = "AIzaSyATBI8jMV1AtfsjhmwEwfOMYSdKmhMM5ck";
 const SPREADSHEET_ID = "1xzQYs3KOIINVTTvVOYSQDiuiQDUsCWwqEDoQAUvBNfQ";
 
 console.log('🚀 Dashboard Autos Nuevos iniciado');
+
+// Función para formatear números con comas
+function formatNumber(value) {
+    if (value === null || value === undefined || value === 'N/A') {
+        return 'N/A';
+    }
+    
+    // Convertir a número si es string
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    
+    if (isNaN(num)) {
+        return 'N/A';
+    }
+    
+    // Formatear con comas como separador de miles
+    return num.toLocaleString('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+    });
+}
+
+// Función para encontrar el valor más alto en una fila (excluyendo N/A)
+function findHighestValue(values) {
+    const numericValues = values
+        .filter(val => val !== 'N/A' && !isNaN(val) && val !== null && val !== undefined)
+        .map(val => typeof val === 'string' ? parseFloat(val) : val);
+    
+    if (numericValues.length === 0) return null;
+    return Math.max(...numericValues);
+}
 
 // Actualizar reloj
 function updateClock() {
@@ -504,9 +541,11 @@ async function connectToAPI() {
     
     try {
         // Verificar configuración
-        if (SPREADSHEET_ID === "TU_NUEVO_SPREADSHEET_ID_AQUI") {
-            throw new Error('⚠️ Debes configurar tu SPREADSHEET_ID en el código.\n\nBusca la línea:\nconst SPREADSHEET_ID = "TU_NUEVO_SPREADSHEET_ID_AQUI";\n\nY reemplaza con tu ID real de Google Sheets.');
+        if (!SPREADSHEET_ID || SPREADSHEET_ID === "TU_NUEVO_SPREADSHEET_ID_AQUI") {
+            throw new Error('⚠️ SPREADSHEET_ID no configurado correctamente');
         }
+        
+        console.log('🔗 Usando Google Sheet ID:', SPREADSHEET_ID);
         
         // Obtener metadata del spreadsheet
         const metadataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?key=${API_KEY}`;
@@ -1018,6 +1057,7 @@ function generateMainTable() {
     const rows = [];
     allKPIs.forEach(kpiName => {
         const row = [kpiName];
+        const rowValues = []; // Para encontrar el valor más alto
         
         selectedAgencies.forEach(agencyName => {
             const agency = filteredData.find(a => a.agency === agencyName);
@@ -1027,22 +1067,44 @@ function generateMainTable() {
                     // Calcular promedio de los meses seleccionados
                     const values = selectedMonths.map(month => kpi[month] || 0);
                     const average = values.reduce((sum, val) => sum + val, 0) / values.length;
-                    row.push(Math.round(average));
+                    const roundedAverage = Math.round(average);
+                    row.push(roundedAverage);
+                    rowValues.push(roundedAverage);
                 } else {
                     row.push('N/A');
+                    rowValues.push('N/A');
                 }
             } else {
                 row.push('N/A');
+                rowValues.push('N/A');
             }
         });
         
-        rows.push(row);
+        // Encontrar el valor más alto de esta fila
+        const highestValue = findHighestValue(rowValues);
+        
+        rows.push({ data: row, rowValues: rowValues, highest: highestValue });
     });
     
-    // Renderizar filas
-    tableBody.innerHTML = rows.map(row => 
-        `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`
-    ).join('');
+    // Renderizar filas con formateo y resaltado
+    tableBody.innerHTML = rows.map(rowObj => {
+        const formattedCells = rowObj.data.map((cell, index) => {
+            if (index === 0) {
+                // Primera columna (KPI name)
+                return `<td>${cell}</td>`;
+            } else {
+                // Columnas de datos
+                const rawValue = rowObj.rowValues[index - 1];
+                const isHighest = rawValue !== 'N/A' && rawValue === rowObj.highest && rowObj.highest !== null;
+                const formattedValue = formatNumber(cell);
+                const cssClass = isHighest ? 'highest-value' : '';
+                
+                return `<td class="${cssClass}">${formattedValue}</td>`;
+            }
+        }).join('');
+        
+        return `<tr>${formattedCells}</tr>`;
+    }).join('');
 }
 
 // Función para refrescar datos
@@ -1130,19 +1192,42 @@ function generateSingleAgencyTable() {
     const headers = ['KPI', ...singleSelectedMonths];
     singleTableHeader.innerHTML = headers.map(header => `<th>${header}</th>`).join('');
     
-    // Crear filas
+    // Crear filas con formateo y resaltado
     const rows = agency.kpis.map(kpi => {
         const row = [kpi.name];
+        const rowValues = [];
+        
         singleSelectedMonths.forEach(month => {
-            row.push(kpi[month] || 'N/A');
+            const value = kpi[month];
+            row.push(value);
+            rowValues.push(value);
         });
-        return row;
+        
+        // Encontrar el valor más alto de esta fila
+        const highestValue = findHighestValue(rowValues);
+        
+        return { data: row, rowValues: rowValues, highest: highestValue };
     });
     
-    // Renderizar filas
-    singleTableBody.innerHTML = rows.map(row => 
-        `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`
-    ).join('');
+    // Renderizar filas con formateo y resaltado
+    singleTableBody.innerHTML = rows.map(rowObj => {
+        const formattedCells = rowObj.data.map((cell, index) => {
+            if (index === 0) {
+                // Primera columna (KPI name)
+                return `<td>${cell}</td>`;
+            } else {
+                // Columnas de datos
+                const rawValue = rowObj.rowValues[index - 1];
+                const isHighest = rawValue !== 'N/A' && rawValue === rowObj.highest && rowObj.highest !== null;
+                const formattedValue = formatNumber(cell);
+                const cssClass = isHighest ? 'highest-value' : '';
+                
+                return `<td class="${cssClass}">${formattedValue}</td>`;
+            }
+        }).join('');
+        
+        return `<tr>${formattedCells}</tr>`;
+    }).join('');
     
     showStatus('success', `Tabla individual generada para ${singleSelectedAgency}`);
 }
