@@ -1221,24 +1221,24 @@ function generateSingleAgencyTable() {
         tr.appendChild(kpiCell);
 
         const monthlyValueCells = []; // Array to store {value, element} for monthly data
-        const currentMonthValuesOnly = []; // To easily find max
+        const currentMonthValues = []; // Array to store numeric values for Promedio/Tendencia calculation
 
         // Asegurarse de que los valores se obtengan en el orden de singleSelectedMonths
         singleSelectedMonths.forEach(month => {
             const value = kpi[month];
-            currentMonthValuesOnly.push(value); // Store value for finding max
             const td = document.createElement('td');
             td.textContent = formatNumber(value);
             monthlyValueCells.push({ value: value, element: td }); // Store value and element
+
+            if (typeof value === 'number' && !isNaN(value)) {
+                currentMonthValues.push(value); // Only add valid numbers for calculations
+            }
             tr.appendChild(td);
         });
 
         // Find and highlight the highest value(s) within the monthly cells for this KPI
-        const numericMonthlyValues = currentMonthValuesOnly
-            .filter(val => typeof val === 'number' && !isNaN(val));
-
-        if (numericMonthlyValues.length > 0) {
-            const highestInMonthlyRow = Math.max(...numericMonthlyValues);
+        if (currentMonthValues.length > 0) {
+            const highestInMonthlyRow = Math.max(...currentMonthValues);
             monthlyValueCells.forEach(item => {
                 if (typeof item.value === 'number' && item.value === highestInMonthlyRow) {
                     item.element.classList.add('highest-value'); // Reusing existing class
@@ -1247,11 +1247,8 @@ function generateSingleAgencyTable() {
         }
 
         // Calculate and add Promedio
-        const sum = currentMonthValuesOnly.reduce((acc, val) => {
-            const num = typeof val === 'string' && val !== 'N/A' ? parseFloat(val) : val;
-            return acc + (isNaN(num) ? 0 : num);
-        }, 0);
-        const promedio = currentMonthValuesOnly.length > 0 ? sum / currentMonthValuesOnly.length : 'N/A';
+        const sum = currentMonthValues.reduce((acc, val) => acc + val, 0);
+        const promedio = currentMonthValues.length > 0 ? sum / currentMonthValues.length : 'N/A';
         const promedioCell = document.createElement('td');
         promedioCell.textContent = formatNumber(promedio);
         promedioCell.classList.add('bg-blue-800/50'); // Add distinct background to Promedio cell
@@ -1409,27 +1406,26 @@ function exportSingleTableToExcel() {
         // Agregar filas de datos
         agency.kpis.forEach(kpi => {
             const row = [kpi.name];
-            const currentMonthValues = [];
+            const currentMonthNumericValuesForCalc = []; // Store only valid numbers for sum/avg/trend
 
             singleSelectedMonths.forEach(month => {
                 const value = kpi[month];
-                currentMonthValues.push(value);
+                if (typeof value === 'number' && !isNaN(value)) {
+                    currentMonthNumericValuesForCalc.push(value);
+                }
                 row.push(value !== 'N/A' ? parseFloat(value) : 'N/A'); // Ensure number for Excel
             });
 
             // Calculate Promedio for export
-            const sum = currentMonthValues.reduce((acc, val) => {
-                const num = typeof val === 'string' && val !== 'N/A' ? parseFloat(val) : val;
-                return acc + (isNaN(num) ? 0 : num);
-            }, 0);
-            const promedio = currentMonthValues.length > 0 ? sum / currentMonthValues.length : 'N/A';
+            const sum = currentMonthNumericValuesForCalc.reduce((acc, val) => acc + val, 0);
+            const promedio = currentMonthNumericValuesForCalc.length > 0 ? sum / currentMonthNumericValuesForCalc.length : 'N/A';
             row.push(promedio === 'N/A' ? 'N/A' : parseFloat(promedio.toFixed(2)));
 
             // Calculate Tendencia for export
             let tendenciaText = 'N/A';
-            if (currentMonthValues.length >= 2) {
-                const lastValue = currentMonthValues[currentMonthValues.length - 1];
-                const secondLastValue = currentMonthValues[currentMonthValues.length - 2];
+            if (currentMonthNumericValuesForCalc.length >= 2) {
+                const lastValue = currentMonthNumericValuesForCalc[currentMonthNumericValuesForCalc.length - 1];
+                const secondLastValue = currentMonthNumericValuesForCalc[currentMonthNumericValuesForCalc.length - 2];
 
                 if (typeof lastValue === 'number' && typeof secondLastValue === 'number' && secondLastValue !== 0) {
                     const percentageChange = ((lastValue - secondLastValue) / secondLastValue) * 100;
