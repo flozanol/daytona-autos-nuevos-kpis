@@ -1,6 +1,4 @@
-}
-        
-        console.log('🔗 Usando Google Sheet ID:', SPREADSHEET_ID);
+console.log('🔗 Usando Google Sheet ID:', SPREADSHEET_ID);
         
         // Obtener metadata del spreadsheet
         const metadataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?key=${API_KEY}`;
@@ -135,8 +133,8 @@
         
         errorMessage += '\n\n¿Quieres cargar datos de demostración en su lugar?';
         
-        const loadDemoOption = confirm(errorMessage);
-        if (loadDemoOption) {
+        const loadDemoconfirm = confirm(errorMessage);
+        if (loadDemoconfirm) {
             loadDemo();
         }
     }
@@ -643,7 +641,7 @@ function generateSingleAgencyTable() {
     // Mostrar container
     container.classList.remove('hidden');
     
-    // Crear encabezados - SOLO AGREGAR PROMEDIO Y TENDENCIA
+    // Crear encabezados - AGREGAR PROMEDIO Y TENDENCIA
     const headers = ['KPI', ...singleSelectedMonths, 'Promedio', 'Tendencia'];
     singleTableHeader.innerHTML = headers.map(header => `<th>${header}</th>`).join('');
     
@@ -693,18 +691,18 @@ function generateSingleAgencyTable() {
         return { data: row, rowValues: rowValues, highest: highestValue, average: average, trend: trend, trendColor: trendColor, trendIcon: trendIcon };
     });
     
-    // Renderizar filas con formateo y resaltado
+    // Renderizar filas
     singleTableBody.innerHTML = rows.map(rowObj => {
         const formattedCells = rowObj.data.map((cell, index) => {
             if (index === 0) {
                 // Primera columna (KPI name)
                 return `<td>${cell}</td>`;
             } else if (index === rowObj.data.length - 2) {
-                // Esta es la posición del promedio (penúltima columna)
+                // Columna de promedio (penúltima)
                 const formattedAverage = formatNumber(rowObj.average);
                 return `<td class="font-semibold text-yellow-400">${formattedAverage}</td>`;
             } else if (index === rowObj.data.length - 1) {
-                // Esta es la posición de la tendencia (última columna)
+                // Columna de tendencia (última)
                 return `<td class="${rowObj.trendColor}"><i class="${rowObj.trendIcon} mr-2"></i>${rowObj.trend}</td>`;
             } else {
                 // Columnas de datos de meses
@@ -787,7 +785,7 @@ function exportSingleTableToExcel() {
     try {
         const agency = loadedData.find(a => a.agency === singleSelectedAgency);
         
-        // Obtener datos de la tabla - INCLUIR PROMEDIO Y TENDENCIA
+        // Obtener datos de la tabla CON PROMEDIO Y TENDENCIA
         const headers = ['KPI', ...singleSelectedMonths, 'Promedio', 'Tendencia'];
         const data = [headers];
         
@@ -1428,3 +1426,4 @@ async function connectToAPI() {
         // Verificar configuración
         if (!SPREADSHEET_ID || SPREADSHEET_ID === "TU_NUEVO_SPREADSHEET_ID_AQUI") {
             throw new Error('⚠️ SPREADSHEET_ID no configurado correctamente');
+        }
