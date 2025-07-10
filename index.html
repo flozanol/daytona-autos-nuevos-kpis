@@ -904,8 +904,7 @@ function displayResults(data) {
         return indexA - indexB;
     });
 
-    // Sort allKPIs alphabetically for consistent table display
-    allKPIs.sort();
+    // Removed: allKPIs.sort(); // REMOVED PER USER REQUEST: Do not change KPI order
 
     // Populate agency selector for single agency analysis
     const singleAgencySelect = document.getElementById('singleAgencySelect');
@@ -1029,7 +1028,7 @@ function updateAnalysis() {
     });
 
     // Populate table body
-    allKPIs.forEach(kpiName => {
+    allKPIs.forEach(kpiName => { // No sorting here, uses the order from allKPIs array
         const tr = document.createElement('tr');
         const kpiCell = document.createElement('td');
         kpiCell.textContent = kpiName;
@@ -1284,7 +1283,7 @@ function exportMainTableToExcel() {
         const headers = ['KPI', ...selectedAgencies, 'Promedio General', 'Tendencia General'];
         const data = [headers];
 
-        allKPIs.forEach(kpiName => {
+        allKPIs.forEach(kpiName => { // No sorting here, uses the order from allKPIs array
             const row = [kpiName];
             const rowAgencyValues = []; // For Promedio General
             
