@@ -886,6 +886,7 @@ function displayResults(data) {
                 allKPIs.push(kpi.name);
             }
         });
+        // Ensure month order for each agency is consistent with the global chronological order
         agencyData.months.forEach(month => {
             if (!allMonths.includes(month)) {
                 allMonths.push(month);
@@ -906,15 +907,15 @@ function displayResults(data) {
     // Populate agency selector for single agency analysis
     const singleAgencySelect = document.getElementById('singleAgencySelect');
     singleAgencySelect.innerHTML = '<option value="">Selecciona una agencia...</option>';
-    agenciesLoaded.sort().forEach(agencyName => {
+    agenciesLoaded.sort().forEach(agencyName => { // Agencias se ordenan alfabéticamente
         const option = document.createElement('option');
         option.value = agencyName;
         option.textContent = agencyName;
         singleAgencySelect.appendChild(option);
     });
 
-    populateCheckboxes('agencyCheckboxes', agenciesLoaded, selectedAgencies, 'agency');
-    populateCheckboxes('monthCheckboxes', allMonths, selectedMonths, 'month');
+    populateCheckboxes('agencyCheckboxes', agenciesLoaded, selectedAgencies, 'agency'); // Pass agencies as-is (alphabetical)
+    populateCheckboxes('monthCheckboxes', allMonths, selectedMonths, 'month'); // Pass allMonths (chronological)
 
     updateAgencyCount();
     updateMonthCount();
@@ -926,7 +927,10 @@ function populateCheckboxes(containerId, items, selectedArray, type) {
     const container = document.getElementById(containerId);
     container.innerHTML = ''; // Clear previous checkboxes
 
-    items.sort().forEach(item => { // Mantener sort() aquí para ordenar alfabéticamente las agencias
+    // IMPORTANT: Removed items.sort() here.
+    // The items array should be pre-sorted chronologically for months,
+    // and alphabetically for agencies before being passed to this function.
+    items.forEach(item => { 
         const id = `${type}-${item.replace(/\s/g, '-')}`;
         const isChecked = selectedArray.includes(item);
         const checkboxDiv = document.createElement('div');
@@ -961,13 +965,16 @@ function populateCheckboxes(containerId, items, selectedArray, type) {
 // Select/Deselect All Agencies
 function selectAllAgencies() {
     selectedAgencies = [...loadedData.map(d => d.agency)];
-    populateCheckboxes('agencyCheckboxes', loadedData.map(d => d.agency), selectedAgencies, 'agency');
+    // Ensure agencies are sorted alphabetically here if needed for the display
+    const sortedAgencies = loadedData.map(d => d.agency).sort(); 
+    populateCheckboxes('agencyCheckboxes', sortedAgencies, selectedAgencies, 'agency');
     updateAgencyCount();
 }
 
 function deselectAllAgencies() {
     selectedAgencies = [];
-    populateCheckboxes('agencyCheckboxes', loadedData.map(d => d.agency), selectedAgencies, 'agency');
+    const sortedAgencies = loadedData.map(d => d.agency).sort();
+    populateCheckboxes('agencyCheckboxes', sortedAgencies, selectedAgencies, 'agency');
     updateAgencyCount();
 }
 
@@ -1004,7 +1011,8 @@ function updateAnalysis() {
     tableBody.innerHTML = '';
 
     // Create header row
-    const headers = ['KPI', ...selectedMonths];
+    // selectedMonths should already be in chronological order due to displayResults sorting allMonths
+    const headers = ['KPI', ...selectedMonths]; 
     headers.forEach(headerText => {
         const th = document.createElement('th');
         th.textContent = headerText;
@@ -1097,7 +1105,8 @@ function generateSingleAgencyTable() {
     }
 
     // Create header row
-    const headers = ['KPI', ...singleSelectedMonths, 'Promedio', 'Tendencia'];
+    // singleSelectedMonths should already be in chronological order due to updateSingleAgencyMonths sorting
+    const headers = ['KPI', ...singleSelectedMonths, 'Promedio', 'Tendencia']; 
     headers.forEach(headerText => {
         const th = document.createElement('th');
         th.textContent = headerText;
