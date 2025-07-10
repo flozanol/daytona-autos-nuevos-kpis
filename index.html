@@ -1019,8 +1019,12 @@ function updateAnalysis() {
         return chronologicalMonthOrder.indexOf(a) - chronologicalMonthOrder.indexOf(b);
     });
 
-    // Create header row: KPI | Agency1 | Agency2 | ... | Promedio General | Tendencia General
-    const headers = ['KPI', ...selectedAgencies, 'Promedio General', 'Tendencia General']; 
+    // Create header row dynamically based on selected months
+    let headers = ['KPI', ...selectedAgencies, 'Promedio General'];
+    if (selectedMonths.length >= 2) {
+        headers.push('Tendencia General');
+    }
+    
     headers.forEach(headerText => {
         const th = document.createElement('th');
         th.textContent = headerText;
@@ -1111,9 +1115,9 @@ function updateAnalysis() {
         promedioGeneralCell.textContent = formatNumber(promedioGeneral);
         tr.appendChild(promedioGeneralCell);
 
-        // Calculate and add Tendencia General (from first selected month to last selected month, overall agencies)
-        const tendenciaCell = document.createElement('td');
+        // Calculate and add Tendencia General ONLY if 2 or more months are selected
         if (selectedMonths.length >= 2) {
+            const tendenciaCell = document.createElement('td');
             const firstMonthAvg = firstMonthOverallCount > 0 ? firstMonthOverallValue / firstMonthOverallCount : 'N/A';
             const lastMonthAvg = lastMonthOverallCount > 0 ? lastMonthOverallValue / lastMonthOverallCount : 'N/A';
 
@@ -1131,10 +1135,8 @@ function updateAnalysis() {
             } else {
                 tendenciaCell.textContent = 'N/A';
             }
-        } else {
-            tendenciaCell.textContent = 'N/A';
+            tr.appendChild(tendenciaCell);
         }
-        tr.appendChild(tendenciaCell);
 
         tableBody.appendChild(tr);
     });
@@ -1280,7 +1282,10 @@ function exportMainTableToExcel() {
         selectedAgencies.sort();
         selectedMonths.sort((a, b) => chronologicalMonthOrder.indexOf(a) - chronologicalMonthOrder.indexOf(b));
 
-        const headers = ['KPI', ...selectedAgencies, 'Promedio General', 'Tendencia General'];
+        let headers = ['KPI', ...selectedAgencies, 'Promedio General'];
+        if (selectedMonths.length >= 2) {
+            headers.push('Tendencia General');
+        }
         const data = [headers];
 
         allKPIs.forEach(kpiName => { // No sorting here, uses the order from allKPIs array
@@ -1330,14 +1335,14 @@ function exportMainTableToExcel() {
             });
 
             // Promedio General
-            const totalNumericValuesInRow = rowAgencyValues.reduce((sum, val) => sum + val, 0);
+            const totalNumericValuesInRow = numericValuesInRow.reduce((sum, val) => sum + val, 0);
             const promedioGeneral = rowAgencyValues.length > 0 ? 
                                    totalNumericValuesInRow / rowAgencyValues.length : 'N/A';
             row.push(promedioGeneral === 'N/A' ? 'N/A' : parseFloat(promedioGeneral.toFixed(2)));
 
-            // Tendencia General
-            let tendenciaText = 'N/A';
+            // Tendencia General ONLY if 2 or more months are selected
             if (selectedMonths.length >= 2) {
+                let tendenciaText = 'N/A';
                 const firstMonthAvg = firstMonthOverallCount > 0 ? firstMonthOverallValue / firstMonthOverallCount : 'N/A';
                 const lastMonthAvg = lastMonthOverallCount > 0 ? lastMonthOverallValue / lastMonthOverallCount : 'N/A';
 
@@ -1345,8 +1350,8 @@ function exportMainTableToExcel() {
                     const percentageChange = ((lastMonthAvg - firstMonthAvg) / firstMonthAvg) * 100;
                     tendenciaText = `${percentageChange.toFixed(2)}%`;
                 }
+                row.push(tendenciaText);
             }
-            row.push(tendenciaText);
             data.push(row);
         });
 
