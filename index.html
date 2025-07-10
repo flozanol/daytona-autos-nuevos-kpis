@@ -412,7 +412,6 @@
                     </div>
                 </div>
             </div>
-        </div>
 
         <footer class="mt-16 text-center">
             <div class="glass-effect rounded-2xl p-6">
@@ -1207,6 +1206,9 @@ function generateSingleAgencyTable() {
     headers.forEach(headerText => {
         const th = document.createElement('th');
         th.textContent = headerText;
+        if (headerText === 'Promedio') {
+            th.classList.add('bg-blue-800/50'); // Add distinct background to Promedio header
+        }
         singleTableHeader.appendChild(th);
     });
 
@@ -1218,24 +1220,41 @@ function generateSingleAgencyTable() {
         kpiCell.classList.add('font-medium', 'text-left');
         tr.appendChild(kpiCell);
 
-        const currentMonthValues = []; // To store values for average and trend calculation
+        const monthlyValueCells = []; // Array to store {value, element} for monthly data
+        const currentMonthValuesOnly = []; // To easily find max
+
         // Asegurarse de que los valores se obtengan en el orden de singleSelectedMonths
         singleSelectedMonths.forEach(month => {
             const value = kpi[month];
-            currentMonthValues.push(value);
+            currentMonthValuesOnly.push(value); // Store value for finding max
             const td = document.createElement('td');
             td.textContent = formatNumber(value);
+            monthlyValueCells.push({ value: value, element: td }); // Store value and element
             tr.appendChild(td);
         });
 
+        // Find and highlight the highest value(s) within the monthly cells for this KPI
+        const numericMonthlyValues = currentMonthValuesOnly
+            .filter(val => typeof val === 'number' && !isNaN(val));
+
+        if (numericMonthlyValues.length > 0) {
+            const highestInMonthlyRow = Math.max(...numericMonthlyValues);
+            monthlyValueCells.forEach(item => {
+                if (typeof item.value === 'number' && item.value === highestInMonthlyRow) {
+                    item.element.classList.add('highest-value'); // Reusing existing class
+                }
+            });
+        }
+
         // Calculate and add Promedio
-        const sum = currentMonthValues.reduce((acc, val) => {
+        const sum = currentMonthValuesOnly.reduce((acc, val) => {
             const num = typeof val === 'string' && val !== 'N/A' ? parseFloat(val) : val;
             return acc + (isNaN(num) ? 0 : num);
         }, 0);
-        const promedio = currentMonthValues.length > 0 ? sum / currentMonthValues.length : 'N/A';
+        const promedio = currentMonthValuesOnly.length > 0 ? sum / currentMonthValuesOnly.length : 'N/A';
         const promedioCell = document.createElement('td');
         promedioCell.textContent = formatNumber(promedio);
+        promedioCell.classList.add('bg-blue-800/50'); // Add distinct background to Promedio cell
         tr.appendChild(promedioCell);
 
         // Calculate and add Tendencia
@@ -1335,7 +1354,7 @@ function exportMainTableToExcel() {
             });
 
             // Promedio General
-            const totalNumericValuesInRow = numericValuesInRow.reduce((sum, val) => sum + val, 0);
+            const totalNumericValuesInRow = rowAgencyValues.reduce((sum, val) => sum + val, 0); // Corrected: use rowAgencyValues here
             const promedioGeneral = rowAgencyValues.length > 0 ? 
                                    totalNumericValuesInRow / rowAgencyValues.length : 'N/A';
             row.push(promedioGeneral === 'N/A' ? 'N/A' : parseFloat(promedioGeneral.toFixed(2)));
