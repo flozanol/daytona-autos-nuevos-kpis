@@ -334,7 +334,7 @@
                         </div>
                         <div>
                             <h3 class="text-2xl font-bold text-white">Análisis Detallado de KPIs</h3>
-                            <p class="text-gray-300">Vista completa de todos los indicadores</p>
+                            <p class="text-gray-300">Vista completa de todos los indicadores por agencia</p>
                         </div>
                     </div>
                     <button onclick="exportMainTableToExcel()" class="px-4 py-2 bg-green-500/20 text-green-400 rounded-lg text-sm hover:bg-green-500/30 transition-all flex items-center">
@@ -904,6 +904,9 @@ function displayResults(data) {
         return indexA - indexB;
     });
 
+    // Sort allKPIs alphabetically for consistent table display
+    allKPIs.sort();
+
     // Populate agency selector for single agency analysis
     const singleAgencySelect = document.getElementById('singleAgencySelect');
     singleAgencySelect.innerHTML = '<option value="">Selecciona una agencia...</option>';
@@ -914,7 +917,7 @@ function displayResults(data) {
         singleAgencySelect.appendChild(option);
     });
 
-    populateCheckboxes('agencyCheckboxes', agenciesLoaded, selectedAgencies, 'agency'); // Pass agencies as-is (alphabetical)
+    populateCheckboxes('agencyCheckboxes', agenciesLoaded.sort(), selectedAgencies, 'agency'); // Pass agencies sorted alphabetically
     populateCheckboxes('monthCheckboxes', allMonths, selectedMonths, 'month'); // Pass allMonths (chronological)
 
     updateAgencyCount();
@@ -1002,7 +1005,7 @@ function updateAnalysis() {
         return;
     }
 
-    showStatus('loading', 'Actualizando análisis principal...');
+    showStatus('loading', 'Actualizando análisis principal por agencia...');
     const tableHeader = document.getElementById('tableHeader');
     const tableBody = document.getElementById('tableBody');
 
@@ -1010,9 +1013,15 @@ function updateAnalysis() {
     tableHeader.innerHTML = '';
     tableBody.innerHTML = '';
 
-    // Create header row
-    // selectedMonths should already be in chronological order due to displayResults sorting allMonths
-    const headers = ['KPI', ...selectedMonths]; 
+    // Sort selectedAgencies alphabetically for consistent column order
+    selectedAgencies.sort();
+    // Sort selectedMonths chronologically for trend calculation
+    selectedMonths.sort((a, b) => {
+        return chronologicalMonthOrder.indexOf(a) - chronologicalMonthOrder.indexOf(b);
+    });
+
+    // Create header row: KPI | Agency1 | Agency2 | ... | Promedio General | Tendencia General
+    const headers = ['KPI', ...selectedAgencies, 'Promedio General', 'Tendencia General']; 
     headers.forEach(headerText => {
         const th = document.createElement('th');
         th.textContent = headerText;
@@ -1027,24 +1036,107 @@ function updateAnalysis() {
         kpiCell.classList.add('font-medium', 'text-left');
         tr.appendChild(kpiCell);
 
-        selectedMonths.forEach(month => {
-            let total = 0;
-            let count = 0;
-            selectedAgencies.forEach(agencyName => {
-                const agencyData = loadedData.find(a => a.agency === agencyName);
-                if (agencyData) {
-                    const kpiData = agencyData.kpis.find(k => k.name === kpiName);
-                    if (kpiData && kpiData[month] !== 'N/A') {
-                        total += kpiData[month];
-                        count++;
-                    }
+        const rowAgencyValues = []; // To store values for highest highlight and Promedio General for this KPI row
+        
+        let firstMonthOverallValue = 0;
+        let lastMonthOverallValue = 0;
+        let firstMonthOverallCount = 0;
+        let lastMonthOverallCount = 0;
+
+        const firstSelectedMonth = selectedMonths[0];
+        const lastSelectedMonth = selectedMonths[selectedMonths.length - 1];
+
+        // Loop through selectedAgencies for agency-specific columns
+        selectedAgencies.forEach(agencyName => {
+            const agencyData = loadedData.find(a => a.agency === agencyName);
+            let agencyKpiSumForSelectedMonths = 0;
+            let agencyKpiCountForSelectedMonths = 0;
+
+            if (agencyData) {
+                const kpiData = agencyData.kpis.find(k => k.name === kpiName);
+                if (kpiData) {
+                    selectedMonths.forEach(month => {
+                        const value = kpiData[month];
+                        if (typeof value === 'number' && !isNaN(value)) {
+                            agencyKpiSumForSelectedMonths += value;
+                            agencyKpiCountForSelectedMonths++;
+
+                            // Aggregate for overall trend calculation
+                            if (month === firstSelectedMonth) {
+                                firstMonthOverallValue += value;
+                                firstMonthOverallCount++;
+                            }
+                            if (month === lastSelectedMonth) {
+                                lastMonthOverallValue += value;
+                                lastMonthOverallCount++;
+                            }
+                        }
+                    });
                 }
-            });
-            const avg = count > 0 ? total / count : 'N/A';
+            }
+            
+            const agencyKpiAvg = agencyKpiCountForSelectedMonths > 0 ? 
+                                 agencyKpiSumForSelectedMonths / agencyKpiCountForSelectedMonths : 'N/A';
+            
             const td = document.createElement('td');
-            td.textContent = formatNumber(avg);
+            td.textContent = formatNumber(agencyKpiAvg);
+            
+            // Store numeric value for highest highlight and general average
+            if (typeof agencyKpiAvg === 'number' && !isNaN(agencyKpiAvg)) {
+                rowAgencyValues.push({ value: agencyKpiAvg, element: td });
+            } else {
+                rowAgencyValues.push({ value: 'N/A', element: td }); // Store N/A to maintain structure
+            }
             tr.appendChild(td);
         });
+
+        // Find and highlight highest value(s) in agency columns
+        const numericValuesInRow = rowAgencyValues
+            .filter(item => typeof item.value === 'number')
+            .map(item => item.value);
+        
+        if (numericValuesInRow.length > 0) {
+            const highestInRow = Math.max(...numericValuesInRow);
+            rowAgencyValues.forEach(item => {
+                if (item.value === highestInRow) {
+                    item.element.classList.add('highest-value');
+                }
+            });
+        }
+
+        // Calculate and add Promedio General (average across selected agencies for this KPI)
+        const totalNumericValuesInRow = numericValuesInRow.reduce((sum, val) => sum + val, 0);
+        const promedioGeneral = numericValuesInRow.length > 0 ? 
+                               totalNumericValuesInRow / numericValuesInRow.length : 'N/A';
+        const promedioGeneralCell = document.createElement('td');
+        promedioGeneralCell.textContent = formatNumber(promedioGeneral);
+        tr.appendChild(promedioGeneralCell);
+
+        // Calculate and add Tendencia General (from first selected month to last selected month, overall agencies)
+        const tendenciaCell = document.createElement('td');
+        if (selectedMonths.length >= 2) {
+            const firstMonthAvg = firstMonthOverallCount > 0 ? firstMonthOverallValue / firstMonthOverallCount : 'N/A';
+            const lastMonthAvg = lastMonthOverallCount > 0 ? lastMonthOverallValue / lastMonthOverallCount : 'N/A';
+
+            if (typeof firstMonthAvg === 'number' && typeof lastMonthAvg === 'number' && firstMonthAvg !== 0) {
+                const percentageChange = ((lastMonthAvg - firstMonthAvg) / firstMonthAvg) * 100;
+                tendenciaCell.textContent = `${formatNumber(percentageChange)}%`;
+
+                if (percentageChange < 0) {
+                    tendenciaCell.classList.add('tendencia-roja');
+                } else if (percentageChange >= 0 && percentageChange <= 5) { // Adjusted threshold for yellow
+                    tendenciaCell.classList.add('tendencia-amarilla');
+                } else { // percentageChange > 5
+                    tendenciaCell.classList.add('tendencia-verde');
+                }
+            } else {
+                tendenciaCell.textContent = 'N/A';
+            }
+        } else {
+            tendenciaCell.textContent = 'N/A';
+        }
+        tr.appendChild(tendenciaCell);
+
         tableBody.appendChild(tr);
     });
     updatePeriodsCount();
@@ -1104,8 +1196,12 @@ function generateSingleAgencyTable() {
         return;
     }
 
+    // Sort singleSelectedMonths chronologically for consistency
+    singleSelectedMonths.sort((a, b) => {
+        return chronologicalMonthOrder.indexOf(a) - chronologicalMonthOrder.indexOf(b);
+    });
+
     // Create header row
-    // singleSelectedMonths should already be in chronological order due to updateSingleAgencyMonths sorting
     const headers = ['KPI', ...singleSelectedMonths, 'Promedio', 'Tendencia']; 
     headers.forEach(headerText => {
         const th = document.createElement('th');
@@ -1181,35 +1277,85 @@ function exportMainTableToExcel() {
     }
 
     try {
-        const headers = ['KPI', ...selectedMonths];
+        // Ensure selectedAgencies and selectedMonths are sorted for consistent export
+        selectedAgencies.sort();
+        selectedMonths.sort((a, b) => chronologicalMonthOrder.indexOf(a) - chronologicalMonthOrder.indexOf(b));
+
+        const headers = ['KPI', ...selectedAgencies, 'Promedio General', 'Tendencia General'];
         const data = [headers];
 
         allKPIs.forEach(kpiName => {
             const row = [kpiName];
-            selectedMonths.forEach(month => {
-                let total = 0;
-                let count = 0;
-                selectedAgencies.forEach(agencyName => {
-                    const agencyData = loadedData.find(a => a.agency === agencyName);
-                    if (agencyData) {
-                        const kpiData = agencyData.kpis.find(k => k.name === kpiName);
-                        if (kpiData && kpiData[month] !== 'N/A') {
-                            total += kpiData[month];
-                            count++;
-                        }
+            const rowAgencyValues = []; // For Promedio General
+            
+            let firstMonthOverallValue = 0;
+            let lastMonthOverallValue = 0;
+            let firstMonthOverallCount = 0;
+            let lastMonthOverallCount = 0;
+
+            const firstSelectedMonth = selectedMonths[0];
+            const lastSelectedMonth = selectedMonths[selectedMonths.length - 1];
+
+            selectedAgencies.forEach(agencyName => {
+                const agencyData = loadedData.find(a => a.agency === agencyName);
+                let agencyKpiSumForSelectedMonths = 0;
+                let agencyKpiCountForSelectedMonths = 0;
+
+                if (agencyData) {
+                    const kpiData = agencyData.kpis.find(k => k.name === kpiName);
+                    if (kpiData) {
+                        selectedMonths.forEach(month => {
+                            const value = kpiData[month];
+                            if (typeof value === 'number' && !isNaN(value)) {
+                                agencyKpiSumForSelectedMonths += value;
+                                agencyKpiCountForSelectedMonths++;
+
+                                if (month === firstSelectedMonth) {
+                                    firstMonthOverallValue += value;
+                                    firstMonthOverallCount++;
+                                }
+                                if (month === lastSelectedMonth) {
+                                    lastMonthOverallValue += value;
+                                    lastMonthOverallCount++;
+                                }
+                            }
+                        });
                     }
-                });
-                const avg = count > 0 ? total / count : 'N/A';
-                row.push(avg === 'N/A' ? 'N/A' : parseFloat(avg.toFixed(2))); // Ensure number for Excel
+                }
+                const agencyKpiAvg = agencyKpiCountForSelectedMonths > 0 ? 
+                                     agencyKpiSumForSelectedMonths / agencyKpiCountForSelectedMonths : 'N/A';
+                row.push(agencyKpiAvg === 'N/A' ? 'N/A' : parseFloat(agencyKpiAvg.toFixed(2)));
+                if (typeof agencyKpiAvg === 'number') {
+                    rowAgencyValues.push(agencyKpiAvg);
+                }
             });
+
+            // Promedio General
+            const totalNumericValuesInRow = rowAgencyValues.reduce((sum, val) => sum + val, 0);
+            const promedioGeneral = rowAgencyValues.length > 0 ? 
+                                   totalNumericValuesInRow / rowAgencyValues.length : 'N/A';
+            row.push(promedioGeneral === 'N/A' ? 'N/A' : parseFloat(promedioGeneral.toFixed(2)));
+
+            // Tendencia General
+            let tendenciaText = 'N/A';
+            if (selectedMonths.length >= 2) {
+                const firstMonthAvg = firstMonthOverallCount > 0 ? firstMonthOverallValue / firstMonthOverallCount : 'N/A';
+                const lastMonthAvg = lastMonthOverallCount > 0 ? lastMonthOverallValue / lastMonthOverallCount : 'N/A';
+
+                if (typeof firstMonthAvg === 'number' && typeof lastMonthAvg === 'number' && firstMonthAvg !== 0) {
+                    const percentageChange = ((lastMonthAvg - firstMonthAvg) / firstMonthAvg) * 100;
+                    tendenciaText = `${percentageChange.toFixed(2)}%`;
+                }
+            }
+            row.push(tendenciaText);
             data.push(row);
         });
 
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet(data);
-        XLSX.utils.book_append_sheet(wb, ws, "KPIs_Global");
+        XLSX.utils.book_append_sheet(wb, ws, "KPIs_Agencias");
 
-        const filename = `KPIs_Autos_Nuevos_Global_${new Date().toLocaleDateString('es-ES').replace(/\//g, '-')}.xlsx`;
+        const filename = `KPIs_Autos_Nuevos_Agencias_${new Date().toLocaleDateString('es-ES').replace(/\//g, '-')}.xlsx`;
         XLSX.writeFile(wb, filename);
 
         showStatus('success', 'Archivo Excel exportado correctamente');
@@ -1230,6 +1376,9 @@ function exportSingleTableToExcel() {
     try {
         const agency = loadedData.find(a => a.agency === singleSelectedAgency);
         
+        // Sort singleSelectedMonths chronologically for consistent export
+        singleSelectedMonths.sort((a, b) => chronologicalMonthOrder.indexOf(a) - chronologicalMonthOrder.indexOf(b));
+
         // Obtener datos de la tabla
         const headers = ['KPI', ...singleSelectedMonths, 'Promedio', 'Tendencia'];
         const data = [headers];
