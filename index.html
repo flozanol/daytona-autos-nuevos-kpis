@@ -343,7 +343,7 @@
                     </button>
                 </div>
                 
-                <div class="overflow-auto max-h-96 bg-white/5 border border-white/10 rounded-xl scrollbar-thin">
+                <div class="bg-white/5 border border-white/10 rounded-xl"> 
                     <table class="min-w-full text-sm">
                         <thead>
                             <tr id="tableHeader"></tr>
@@ -1027,6 +1027,9 @@ function updateAnalysis() {
     headers.forEach(headerText => {
         const th = document.createElement('th');
         th.textContent = headerText;
+        if (headerText === 'Promedio General') { // Apply blue background to Promedio General header
+            th.classList.add('bg-blue-800/50');
+        }
         tableHeader.appendChild(th);
     });
 
@@ -1112,6 +1115,7 @@ function updateAnalysis() {
                                totalNumericValuesInRow / numericValuesInRow.length : 'N/A';
         const promedioGeneralCell = document.createElement('td');
         promedioGeneralCell.textContent = formatNumber(promedioGeneral);
+        promedioGeneralCell.classList.add('bg-blue-800/50'); // Apply blue background to Promedio General cell
         tr.appendChild(promedioGeneralCell);
 
         // Calculate and add Tendencia General ONLY if 2 or more months are selected
@@ -1459,6 +1463,7 @@ function exportSingleTableToExcel() {
 // Inicialización del dashboard
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🎉 Dashboard KPIs Autos Nuevos Daytona cargado correctamente');
+    connectToAPI(); // Automatically connect to Google Sheets on page load
 });
 </script>
 </body>
