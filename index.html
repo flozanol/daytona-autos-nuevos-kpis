@@ -96,12 +96,15 @@
         table {
             border-collapse: separate;
             border-spacing: 0;
+            /* Ensure content fits by default, allowing text-xs to work */
+            table-layout: auto; 
         }
         
         th, td {
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 12px 16px;
+            padding: 8px 10px; /* Reduced padding */
             text-align: center;
+            white-space: nowrap; /* Prevent text wrapping */
         }
         
         th {
@@ -115,6 +118,7 @@
         
         td {
             color: rgba(255, 255, 255, 0.9);
+            font-size: 0.75rem; /* text-xs equivalent */
         }
         
         tr:nth-child(even) {
@@ -343,9 +347,8 @@
                     </button>
                 </div>
                 
-                <div class="bg-white/5 border border-white/10 rounded-xl"> 
-                    <table class="min-w-full text-sm">
-                        <thead>
+                <div class="overflow-x-auto bg-white/5 border border-white/10 rounded-xl scrollbar-thin"> 
+                    <table class="min-w-full text-xs"> <thead>
                             <tr id="tableHeader"></tr>
                         </thead>
                         <tbody id="tableBody" class="divide-y divide-white/10"></tbody>
