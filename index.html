@@ -69,6 +69,7 @@
         
         .scrollbar-thin::-webkit-scrollbar {
             width: 6px;
+            height: 6px; /* Added for horizontal scrollbar */
         }
         
         .scrollbar-thin::-webkit-scrollbar-track {
@@ -96,7 +97,6 @@
         table {
             border-collapse: separate;
             border-spacing: 0;
-            /* Ensure content fits by default, allowing text-xs to work */
             table-layout: auto; 
         }
         
@@ -113,9 +113,24 @@
             font-weight: 600;
             position: sticky;
             top: 0;
-            z-index: 10;
+            z-index: 20; /* Increased z-index for fixed header */
         }
         
+        /* Estilos para la primera columna (KPI) fija */
+        #tableBody td:first-child,
+        #tableHeader th:first-child {
+            position: sticky;
+            left: 0;
+            background: rgba(15, 23, 42, 0.9); /* Dark background for visibility */
+            z-index: 15; /* Ensure it's above normal cells but below sticky header */
+            border-right: 1px solid rgba(255, 255, 255, 0.2); /* Stronger border for separation */
+        }
+
+        #tableHeader th:first-child {
+             /* When both are sticky, the top-left corner needs higher z-index */
+            z-index: 25; 
+        }
+
         td {
             color: rgba(255, 255, 255, 0.9);
             font-size: 0.75rem; /* text-xs equivalent */
@@ -347,8 +362,9 @@
                     </button>
                 </div>
                 
-                <div class="overflow-x-auto bg-white/5 border border-white/10 rounded-xl scrollbar-thin"> 
-                    <table class="min-w-full text-xs"> <thead>
+                <div class="overflow-x-auto overflow-y-auto max-h-96 bg-white/5 border border-white/10 rounded-xl scrollbar-thin"> 
+                    <table class="min-w-full text-xs"> 
+                        <thead>
                             <tr id="tableHeader"></tr>
                         </thead>
                         <tbody id="tableBody" class="divide-y divide-white/10"></tbody>
@@ -1385,7 +1401,7 @@ function exportMainTableToExcel() {
         const filename = `KPIs_Autos_Nuevos_Agencias_${new Date().toLocaleDateString('es-ES').replace(/\//g, '-')}.xlsx`;
         XLSX.writeFile(wb, filename);
 
-        showStatus('success', 'Archivo Excel exportado correctamente');
+        showStatus('success', 'Archivo Excel exportado correctamente.');
 
     } catch (error) {
         console.error('Error exportando Excel:', error);
@@ -1455,7 +1471,7 @@ function exportSingleTableToExcel() {
         const filename = `${singleSelectedAgency}_KPIs_${new Date().toLocaleDateString('es-ES').replace(/\//g, '-')}.xlsx`;
         XLSX.writeFile(wb, filename);
         
-        showStatus('success', 'Archivo Excel exportado correctamente');
+        showStatus('success', 'Archivo Excel exportado correctamente.');
         
     } catch (error) {
         console.error('Error exportando Excel:', error);
