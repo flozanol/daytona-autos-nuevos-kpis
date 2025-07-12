@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -370,6 +371,17 @@
                         <tbody id="tableBody" class="divide-y divide-white/10"></tbody>
                     </table>
                 </div>
+
+                <div class="mt-8 pt-8 border-t border-white/10" id="pieChartContainer">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-gradient-to-r from-pink-500 to-red-500 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-chart-pie text-white text-lg"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-white">Distribución de Unidades Facturadas por Agencia</h4>
+                    </div>
+                    <canvas id="unidadesFacturadasPieChart" class="max-h-96"></canvas>
+                    <p class="text-gray-400 text-sm mt-2 text-center">Muestra la proporción de Unidades Facturadas por cada agencia seleccionada en el período promedio.</p>
+                </div>
             </div>
 
             <div class="glass-effect rounded-2xl p-8 card-hover mb-8">
@@ -429,6 +441,17 @@
                             <tbody id="singleTableBody" class="divide-y divide-white/10"></tbody>
                         </table>
                     </div>
+
+                    <div class="mt-8 pt-8 border-t border-white/10" id="lineChartContainer">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fas fa-chart-line text-white text-lg"></i>
+                            </div>
+                            <h4 class="text-xl font-bold text-white">Unidades Facturadas Mensual - <span id="selectedAgencyForLineChart"></span></h4>
+                        </div>
+                        <canvas id="unidadesFacturadasLineChart" class="max-h-96"></canvas>
+                        <p class="text-gray-400 text-sm mt-2 text-center">Muestra la tendencia mensual de Unidades Facturadas para la agencia seleccionada.</p>
+                    </div>
                 </div>
             </div>
 
@@ -467,6 +490,11 @@ let singleSelectedMonths = [];
 // API Configuration - CONFIGURADO CON TU SPREADSHEET_ID
 const API_KEY = "AIzaSyATBI8jMV1AtfsjhmwEwfOMYSdKmhMM5ck";
 const SPREADSHEET_ID = "1xzQYs3KOIINVTTvVOYSQDiuiQDUsCWwqEDoQAUvBNfQ";
+
+// Variables para los gráficos
+let unidadesFacturadasPieChart;
+let unidadesFacturadasLineChart;
+const KPI_UNIDADES_FACTURADAS = 'Unidades Facturadas'; // Nombre exacto del KPI para los gráficos
 
 // Definir el orden cronológico de los meses
 const chronologicalMonthOrder = [
@@ -524,9 +552,9 @@ function loadDemo() {
     console.log('🎯 Cargando demo de autos nuevos...');
     showStatus('loading', 'Cargando datos de demostración...');
     
-    // KPIs específicos para autos nuevos
+    // KPIs específicos para autos nuevos (asegúrate de incluir 'Unidades Facturadas')
     const kpis = [
-        'Ventas Nuevos', 'Leads Nuevos', 'Test Drive Nuevos', 'Conversión % Nuevos', 'Financiamientos Nuevos',
+        'Unidades Facturadas', 'Ventas Nuevos', 'Leads Nuevos', 'Test Drive Nuevos', 'Conversión % Nuevos', 'Financiamientos Nuevos',
         'Seguros Nuevos', 'Cotizaciones Nuevos', 'Seguimientos Nuevos', 'Llamadas Nuevos', 'Satisfacción Nuevos',
         'Tiempo Entrega', 'Post-Venta Nuevos', 'Garantías Nuevos', 'Accesorios Nuevos', 'Cross-Selling Nuevos',
         'Up-Selling Nuevos', 'Referidos Nuevos', 'ROI Marketing Nuevos', 'Costo Lead Nuevos', 'Valor Cliente Nuevos',
@@ -559,6 +587,13 @@ function loadDemo() {
                 const variation = (Math.random() - 0.5) * 0.4;
                 kpi[month] = Math.max(1, Math.round(agency.base * (1 + variation)));
             });
+            // Asegurarse de que "Unidades Facturadas" tenga datos con variación para el gráfico
+            if (kpiName === KPI_UNIDADES_FACTURADAS) {
+                months.forEach(month => {
+                    const baseValue = agency.base / 2; // Unidades facturadas suelen ser menos que otras métricas
+                    kpi[month] = Math.max(5, Math.round(baseValue * (1 + (Math.random() - 0.5) * 0.8))); // Mayor variación para demo
+                });
+            }
             return kpi;
         });
 
@@ -922,8 +957,6 @@ function displayResults(data) {
         return indexA - indexB;
     });
 
-    // Removed: allKPIs.sort(); // REMOVED PER USER REQUEST: Do not change KPI order
-
     // Populate agency selector for single agency analysis
     const singleAgencySelect = document.getElementById('singleAgencySelect');
     singleAgencySelect.innerHTML = '<option value="">Selecciona una agencia...</option>';
@@ -1015,10 +1048,22 @@ function updatePeriodsCount() {
     document.getElementById('totalPeriods').textContent = selectedMonths.length;
 }
 
-// Update Main Analysis Table
+// Function to generate random colors for charts
+function generateColors(numColors) {
+    const colors = [];
+    for (let i = 0; i < numColors; i++) {
+        const hue = (i * 137.508) % 360; // Use golden angle approximation
+        colors.push(`hsla(${hue}, 70%, 60%, 0.7)`); // Softer colors
+    }
+    return colors;
+}
+
+// Update Main Analysis Table AND Pie Chart
 function updateAnalysis() {
     if (selectedAgencies.length === 0 || selectedMonths.length === 0) {
         showStatus('error', 'Selecciona al menos una agencia y un mes para el análisis.');
+        // Ocultar gráficos si no hay datos seleccionados
+        document.getElementById('pieChartContainer').classList.add('hidden');
         return;
     }
 
@@ -1051,6 +1096,10 @@ function updateAnalysis() {
         }
         tableHeader.appendChild(th);
     });
+
+    // Datos para el gráfico de pastel
+    const pieChartLabels = [];
+    const pieChartData = [];
 
     // Populate table body
     allKPIs.forEach(kpiName => { // No sorting here, uses the order from allKPIs array
@@ -1108,6 +1157,11 @@ function updateAnalysis() {
             // Store numeric value for highest highlight and general average
             if (typeof agencyKpiAvg === 'number' && !isNaN(agencyKpiAvg)) {
                 rowAgencyValues.push({ value: agencyKpiAvg, element: td });
+                // NEW: Collect data for Pie Chart for "Unidades Facturadas" KPI
+                if (kpiName === KPI_UNIDADES_FACTURADAS) {
+                    pieChartLabels.push(agencyName);
+                    pieChartData.push(agencyKpiAvg);
+                }
             } else {
                 rowAgencyValues.push({ value: 'N/A', element: td }); // Store N/A to maintain structure
             }
@@ -1164,9 +1218,81 @@ function updateAnalysis() {
     });
     updatePeriodsCount();
     showStatus('success', 'Análisis principal actualizado correctamente.');
+
+    // NEW: Render Pie Chart
+    renderUnidadesFacturadasPieChart(pieChartLabels, pieChartData);
 }
 
-// Single Agency Analysis
+// Render Pie Chart
+function renderUnidadesFacturadasPieChart(labels, data) {
+    const ctx = document.getElementById('unidadesFacturadasPieChart').getContext('2d');
+
+    // Destroy existing chart if it exists
+    if (unidadesFacturadasPieChart) {
+        unidadesFacturadasPieChart.destroy();
+    }
+
+    // Check if there's actual data to display
+    const totalData = data.reduce((sum, val) => sum + val, 0);
+    if (labels.length === 0 || totalData === 0) {
+        document.getElementById('pieChartContainer').classList.add('hidden');
+        return;
+    } else {
+        document.getElementById('pieChartContainer').classList.remove('hidden');
+    }
+
+    const backgroundColors = generateColors(labels.length); // Use the new color generator
+
+    unidadesFacturadasPieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: backgroundColors,
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        color: 'white',
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed !== null) {
+                                label += formatNumber(context.parsed) + ' Unidades';
+                            }
+                            return label;
+                        },
+                        afterLabel: function(context) {
+                            const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                            const percentage = (context.parsed / total * 100).toFixed(2);
+                            return `(${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+
+// Single Agency Analysis AND Line Chart
 function updateSingleAgencyMonths() {
     singleSelectedAgency = document.getElementById('singleAgencySelect').value;
     singleSelectedMonths = []; // Clear previously selected months
@@ -1174,10 +1300,13 @@ function updateSingleAgencyMonths() {
     const singleMonthCheckboxesContainer = document.getElementById('singleMonthCheckboxes');
     singleMonthCheckboxesContainer.innerHTML = ''; // Clear previous checkboxes
 
+    // NUEVO: Ocultar el gráfico de línea cuando se cambia la agencia o no hay selección
+    document.getElementById('lineChartContainer').classList.add('hidden');
+    document.getElementById('singleAgencyTableContainer').classList.add('hidden');
+
     if (!singleSelectedAgency) {
         singleMonthCheckboxesContainer.innerHTML = '<p class="text-gray-400 text-sm">Primero selecciona una agencia</p>';
         document.getElementById('singleMonthCount').textContent = 'Meses (0)';
-        document.getElementById('singleAgencyTableContainer').classList.add('hidden');
         return;
     }
 
@@ -1200,6 +1329,9 @@ function updateSingleAgencyMonths() {
 function generateSingleAgencyTable() {
     if (!singleSelectedAgency || singleSelectedMonths.length === 0) {
         showStatus('error', 'Selecciona una agencia y al menos un mes para el análisis individual.');
+        // NUEVO: Ocultar el gráfico de línea si no hay selección válida
+        document.getElementById('lineChartContainer').classList.add('hidden');
+        document.getElementById('singleAgencyTableContainer').classList.add('hidden');
         return;
     }
 
@@ -1216,6 +1348,8 @@ function generateSingleAgencyTable() {
     const agencyData = loadedData.find(a => a.agency === singleSelectedAgency);
     if (!agencyData) {
         showStatus('error', `No se encontraron datos para la agencia ${singleSelectedAgency}.`);
+        // NUEVO: Ocultar el gráfico de línea si no hay datos
+        document.getElementById('lineChartContainer').classList.add('hidden');
         return;
     }
 
@@ -1234,6 +1368,18 @@ function generateSingleAgencyTable() {
         }
         singleTableHeader.appendChild(th);
     });
+
+    // Datos para el gráfico de líneas
+    const lineChartLabels = [];
+    const lineChartData = [];
+    const kpiUnidadesFacturadasData = agencyData.kpis.find(kpi => kpi.name === KPI_UNIDADES_FACTURADAS);
+    
+    if (kpiUnidadesFacturadasData) {
+        singleSelectedMonths.forEach(month => {
+            lineChartLabels.push(month);
+            lineChartData.push(kpiUnidadesFacturadasData[month] || 0); // Usar 0 si no hay valor
+        });
+    }
 
     // Populate table body
     agencyData.kpis.forEach(kpi => {
@@ -1306,6 +1452,98 @@ function generateSingleAgencyTable() {
     });
 
     showStatus('success', `Análisis individual para ${singleSelectedAgency} generado.`);
+
+    // NEW: Render Line Chart
+    document.getElementById('selectedAgencyForLineChart').textContent = singleSelectedAgency;
+    renderUnidadesFacturadasLineChart(lineChartLabels, lineChartData);
+}
+
+// Render Line Chart
+function renderUnidadesFacturadasLineChart(labels, data) {
+    const ctx = document.getElementById('unidadesFacturadasLineChart').getContext('2d');
+
+    // Destroy existing chart if it exists
+    if (unidadesFacturadasLineChart) {
+        unidadesFacturadasLineChart.destroy();
+    }
+
+    // Check if there's actual data to display
+    const totalData = data.reduce((sum, val) => sum + val, 0);
+    if (labels.length === 0 || totalData === 0) {
+        document.getElementById('lineChartContainer').classList.add('hidden');
+        return;
+    } else {
+        document.getElementById('lineChartContainer').classList.remove('hidden');
+    }
+
+    unidadesFacturadasLineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Unidades Facturadas',
+                data: data,
+                borderColor: 'rgba(59, 130, 246, 0.8)', // Blue-500
+                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: 'white',
+                pointBorderColor: 'rgba(59, 130, 246, 1)',
+                pointHoverBackgroundColor: 'rgba(255,255,255,1)',
+                pointHoverBorderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false // No need for legend as there's only one dataset
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${formatNumber(context.parsed.y)} Unidades`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Mes',
+                        color: 'white'
+                    },
+                    ticks: {
+                        color: 'white'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Unidades',
+                        color: 'white'
+                    },
+                    ticks: {
+                        color: 'white',
+                        callback: function(value) {
+                            return formatNumber(value);
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            }
+        }
+    });
 }
 
 
