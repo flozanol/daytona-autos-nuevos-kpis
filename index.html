@@ -117,7 +117,7 @@
             z-index: 20;
         }
         
-        /* === Estilos para la primera tabla (Análisis Detallado de KPIs) === */
+        /* Estilos para la primera columna (KPI) fija - Tabla 1 */
         #tableBody td:first-child,
         #tableHeader th:first-child {
             position: sticky;
@@ -131,19 +131,17 @@
             z-index: 25;
         }
         
-        /* === NUEVOS ESTILOS para la SEGUNDA tabla (Análisis Individual por Agencia) === */
+        /* Estilos para la primera columna (KPI) fija - Tabla 2 (AÑADIDO ID singleAgencyTable) */
         #singleAgencyTable #singleTableBody td:first-child,
         #singleAgencyTable #singleTableHeader th:first-child {
             position: sticky;
             left: 0;
-            /* Usar un color diferente para distinguirla si es necesario, pero el mismo es aceptable */
             background: rgba(15, 23, 42, 0.9);
             z-index: 15;
             border-right: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         #singleAgencyTable #singleTableHeader th:first-child {
-            /* Necesita el z-index más alto donde se cruzan */
             z-index: 25;
         }
 
@@ -186,38 +184,1565 @@
 </head>
 <body class="min-h-screen">
     <nav class="glass-effect border-b border-white/10 sticky top-0 z-50">
-        </nav>
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <img src="https://api.grupodaytona.com/files/images/full-xzLxpZqXUE-1728519042236.png" alt="Grupo Daytona" class="w-10 h-10 rounded-lg object-contain bg-white/10 p-1">
+                    <div>
+                        <h1 class="text-xl font-bold text-white">Grupo Daytona</h1>
+                        <p class="text-sm text-gray-300">Dashboard KPIs Autos Nuevos</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="hidden md:flex items-center space-x-2 text-gray-300">
+                        <i class="fas fa-clock text-sm"></i>
+                        <span class="text-sm" id="currentTime"></span>
+                    </div>
+                    
+                    <a href="https://flozanol.github.io/daytona-seminuevos-kpis/" 
+                        target="_blank"
+                        class="hidden md:flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg text-white text-sm font-medium hover:from-blue-600 hover:to-purple-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                        <i class="fas fa-exchange-alt text-sm"></i>
+                        <span>Dashboard Seminuevos</span>
+                        <i class="fas fa-external-link-alt text-xs"></i>
+                    </a>
+                    
+                    <button onclick="window.open('https://flozanol.github.io/daytona-seminuevos-kpis/', '_blank')"
+                            class="md:hidden flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg text-white hover:from-blue-600 hover:to-purple-600 transition-all duration-300 shadow-lg">
+                        <i class="fas fa-exchange-alt text-sm"></i>
+                    </button>
+                    
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
 
     <div class="max-w-7xl mx-auto px-6 py-8">
-        <div class="glass-effect rounded-2xl p-8 card-hover mb-8">
-            <div class="overflow-x-auto overflow-y-auto max-h-96 bg-white/5 border border-white/10 rounded-xl scrollbar-thin">
-                <table class="min-w-full text-xs">
-                    <thead>
-                        <tr id="tableHeader"></tr>
-                    </thead>
-                    <tbody id="tableBody" class="divide-y divide-white/10"></tbody>
-                </table>
+        <div class="text-center mb-12">
+            <div class="flex items-center justify-center mb-4">
+                <div class="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full text-white text-sm font-semibold mr-4">
+                    <i class="fas fa-car mr-2"></i>
+                    AUTOS NUEVOS
+                </div>
+                <div class="text-gray-400 text-sm">
+                    <a href="https://flozanol.github.io/daytona-seminuevos-kpis/" 
+                        target="_blank" 
+                        class="hover:text-blue-400 transition-colors flex items-center">
+                        <i class="fas fa-exchange-alt mr-1"></i>
+                        Ver Dashboard Seminuevos
+                    </a>
+                </div>
             </div>
+            <h2 class="text-5xl font-bold gradient-text mb-4">
+                Dashboard KPIs Autos Nuevos Daytona
+            </h2>
+            <p class="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+                Análisis en tiempo real de indicadores clave de rendimiento para autos nuevos en todas las agencias
+            </p>
+        </div>
+
+        <div class="flex justify-center space-x-6 mb-12">
+            <button onclick="loadDemo()" class="btn-primary px-8 py-4 rounded-xl text-white font-semibold text-lg shadow-2xl">
+                <i class="fas fa-play mr-3"></i>
+                Cargar Demo
+            </button>
+            <button onclick="connectToAPI()" class="btn-secondary px-8 py-4 rounded-xl text-white font-semibold text-lg shadow-2xl">
+                <i class="fas fa-link mr-3 animated-icon"></i>
+                Conectar API
+            </button>
+        </div>
+
+        <div id="status" class="hidden mb-8">
+            <div class="glass-effect rounded-xl p-4 border-l-4">
+                <div class="flex items-center">
+                    <i id="statusIcon" class="text-2xl mr-3"></i>
+                    <p id="statusText" class="text-lg font-medium text-white"></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="results" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="stat-card rounded-2xl p-6 text-center">
+                    <div class="w-16 h-16 bg-gradient-to-r from-red-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-chart-bar text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-white mb-2" id="totalKPIs">0</h3>
+                    <p class="text-gray-300 font-medium">Total KPIs</p>
+                </div>
+                
+                <div class="stat-card rounded-2xl p-6 text-center">
+                    <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-building text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-white mb-2" id="totalAgencies">10</h3>
+                    <p class="text-gray-300 font-medium">Agencias Activas</p>
+                </div>
+                
+                <div class="stat-card rounded-2xl p-6 text-center">
+                    <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-calendar text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-white mb-2" id="totalPeriods">0</h3>
+                    <p class="text-gray-300 font-medium">Períodos Seleccionados</p>
+                </div>
             </div>
 
-        <div class="glass-effect rounded-2xl p-8 card-hover mb-8">
-            <div id="singleAgencyTableContainer" class="hidden">
-                <div class="overflow-auto max-h-96 bg-white/5 border border-white/10 rounded-xl scrollbar-thin">
-                    <table id="singleAgencyTable" class="min-w-full text-sm">
+            <div class="glass-effect rounded-2xl p-8 mb-8 card-hover">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-store text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-white">Agencias Conectadas</h3>
+                        <p class="text-gray-300">Estado de conexión de las agencias</p>
+                    </div>
+                </div>
+                <div id="agenciesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </div>
+            
+            <div class="glass-effect rounded-2xl p-8 mb-8 card-hover">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-sliders-h text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-white">Configuración del Análisis</h3>
+                        <p class="text-gray-300">Personaliza tu comparación</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <label class="text-lg font-semibold text-white flex items-center">
+                                <i class="fas fa-building mr-2 text-blue-400"></i>
+                                <span id="agencyCount">Agencias (0/10)</span>
+                            </label>
+                            <div class="space-x-2">
+                                <button onclick="selectAllAgencies()" class="px-3 py-1 bg-green-500/20 text-green-400 rounded-lg text-sm hover:bg-green-500/30 transition-all">
+                                    Todas
+                                </button>
+                                <button onclick="deselectAllAgencies()" class="px-3 py-1 bg-red-500/20 text-red-400 rounded-lg text-sm hover:bg-red-500/30 transition-all">
+                                    Ninguna
+                                </button>
+                            </div>
+                        </div>
+                        <div class="max-h-64 overflow-y-auto bg-white/5 border border-white/10 rounded-xl p-4 scrollbar-thin">
+                            <div id="agencyCheckboxes" class="space-y-2"></div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <label class="text-lg font-semibold text-white flex items-center">
+                            <i class="fas fa-calendar-alt mr-2 text-green-400"></i>
+                            <span id="monthCount">Meses (0)</span>
+                        </label>
+                        <div class="max-h-64 overflow-y-auto bg-white/5 border border-white/10 rounded-xl p-4 scrollbar-thin">
+                            <div id="monthCheckboxes" class="space-y-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-center space-x-4 mt-8">
+                    <button onclick="updateAnalysis()" class="btn-primary px-6 py-3 rounded-xl text-white font-semibold">
+                        <i class="fas fa-sync-alt mr-2"></i>
+                        Actualizar Análisis
+                    </button>
+                    <button onclick="refreshData()" class="px-6 py-3 bg-blue-500/20 text-blue-400 rounded-xl font-semibold hover:bg-blue-500/30 transition-all">
+                        <i class="fas fa-refresh mr-2"></i>
+                        Refrescar Datos
+                    </button>
+                </div>
+            </div>
+            
+            <div class="glass-effect rounded-2xl p-8 card-hover mb-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-table text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-white">Análisis Detallado de KPIs</h3>
+                            <p class="text-gray-300">Vista completa de todos los indicadores por agencia</p>
+                        </div>
+                    </div>
+                    <button onclick="exportMainTableToExcel()" class="px-4 py-2 bg-green-500/20 text-green-400 rounded-lg text-sm hover:bg-green-500/30 transition-all flex items-center">
+                        <i class="fas fa-file-excel mr-2"></i>
+                        Exportar a Excel
+                    </button>
+                </div>
+                
+                <div class="overflow-x-auto overflow-y-auto max-h-96 bg-white/5 border border-white/10 rounded-xl scrollbar-thin">
+                    <table class="min-w-full text-xs">
                         <thead>
-                            <tr id="singleTableHeader"></tr>
+                            <tr id="tableHeader"></tr>
                         </thead>
-                        <tbody id="singleTableBody" class="divide-y divide-white/10"></tbody>
+                        <tbody id="tableBody" class="divide-y divide-white/10"></tbody>
                     </table>
                 </div>
 
+                <div class="mt-8 pt-8 border-t border-white/10" id="pieChartContainer">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-gradient-to-r from-pink-500 to-red-500 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-chart-pie text-white text-lg"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-white">Distribución de Unidades Facturadas por Agencia</h4>
+                    </div>
+                    <canvas id="unidadesFacturadasPieChart" class="max-h-96"></canvas>
+                    <p class="text-gray-400 text-sm mt-2 text-center">Muestra la proporción de Unidades Facturadas por cada agencia seleccionada en el período promedio.</p>
                 </div>
-        </div>
+            </div>
 
-        </div>
+            <div class="glass-effect rounded-2xl p-8 card-hover mb-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-chart-pie text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-white">Análisis Individual por Agencia</h3>
+                            <p class="text-gray-300">Comparación mensual de una agencia específica</p>
+                        </div>
+                    </div>
+                    <button onclick="exportSingleTableToExcel()" class="px-4 py-2 bg-green-500/20 text-green-400 rounded-lg text-sm hover:bg-green-500/30 transition-all flex items-center">
+                        <i class="fas fa-file-excel mr-2"></i>
+                        Exportar a Excel
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <div class="space-y-4">
+                        <label class="text-lg font-semibold text-white flex items-center">
+                            <i class="fas fa-building mr-2 text-orange-400"></i>
+                            Seleccionar Agencia
+                        </label>
+                        <select id="singleAgencySelect" onchange="updateSingleAgencyMonths()" class="w-full p-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                            <option value="">Selecciona una agencia...</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-4">
+                        <label class="text-lg font-semibold text-white flex items-center">
+                            <i class="fas fa-calendar-alt mr-2 text-green-400"></i>
+                            <span id="singleMonthCount">Meses (0)</span>
+                        </label>
+                        <div class="max-h-64 overflow-y-auto bg-white/5 border border-white/10 rounded-xl p-4 scrollbar-thin">
+                            <div id="singleMonthCheckboxes" class="space-y-2">
+                                <p class="text-gray-400 text-sm">Primero selecciona una agencia</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-center mb-8">
+                    <button onclick="generateSingleAgencyTable()" class="btn-primary px-8 py-3 rounded-xl text-white font-semibold text-lg">
+                        <i class="fas fa-chart-bar mr-3"></i>
+                        Generar Análisis Individual
+                    </button>
+                </div>
+
+                <div id="singleAgencyTableContainer" class="hidden">
+                    <div class="overflow-auto max-h-96 bg-white/5 border border-white/10 rounded-xl scrollbar-thin">
+                        <table id="singleAgencyTable" class="min-w-full text-sm">
+                            <thead>
+                                <tr id="singleTableHeader"></tr>
+                            </thead>
+                            <tbody id="singleTableBody" class="divide-y divide-white/10"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-8 pt-8 border-t border-white/10" id="lineChartContainer">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fas fa-chart-line text-white text-lg"></i>
+                            </div>
+                            <h4 class="text-xl font-bold text-white">Unidades Facturadas Mensual - <span id="selectedAgencyForLineChart"></span></h4>
+                        </div>
+                        <canvas id="unidadesFacturadasLineChart" class="max-h-96"></canvas>
+                        <p class="text-gray-400 text-sm mt-2 text-center">Muestra la tendencia mensual de Unidades Facturadas para la agencia seleccionada.</p>
+                    </div>
+                </div>
+            </div>
+
+        <footer class="mt-16 text-center">
+            <div class="glass-effect rounded-2xl p-6">
+                <div class="flex items-center justify-center space-x-6 text-gray-300">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-shield-alt text-green-400"></i>
+                        <span>Datos Seguros</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-sync text-blue-400"></i>
+                        <span>Tiempo Real</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-chart-line text-red-400"></i>
+                        <span>Analytics Avanzados</span>
+                    </div>
+                </div>
+                <p class="text-gray-400 text-sm mt-4">
+                    © 2025 Grupo Daytona - Dashboard KPIs Autos Nuevos
+                </p>
+            </div>
+        </footer>
+    </div>
 
 <script>
-// ... TODO EL CÓDIGO JAVASCRIPT PERMANECE IGUAL ...
+// Variables globales
+let loadedData = [];
+let selectedAgencies = [];
+let selectedMonths = [];
+let allKPIs = [];
+let allMonths = [];
+let singleSelectedAgency = '';
+let singleSelectedMonths = [];
+// API Configuration - CONFIGURADO CON TU SPREADSHEET_ID
+const API_KEY = "AIzaSyATBI8jMV1AtfsjhmwEwfOMYSdKmhMM5ck";
+const SPREADSHEET_ID = "1xzQYs3KOIINVTTvVOYSQDiuiQDUsCWwqEDoQAUvBNfQ";
+
+// Variables para los gráficos
+let unidadesFacturadasPieChart;
+let unidadesFacturadasLineChart;
+const KPI_UNIDADES_FACTURADAS = 'Unidades Facturadas'; // Nombre exacto del KPI para los gráficos
+
+// Definir el orden cronológico de los meses
+const chronologicalMonthOrder = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+];
+
+console.log('🚀 Dashboard Autos Nuevos iniciado');
+// Función para formatear números con comas
+function formatNumber(value) {
+    if (value === null || value === undefined || value === 'N/A') {
+        return 'N/A';
+    }
+    
+    // Convertir a número si es string
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    
+    if (isNaN(num)) {
+        return 'N/A';
+    }
+    
+    // Formatear con comas como separador de miles
+    return num.toLocaleString('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+    });
+}
+
+// Función para encontrar el valor más alto en una fila (excluyendo N/A)
+function findHighestValue(values) {
+    const numericValues = values
+        .filter(val => val !== 'N/A' && !isNaN(val) && val !== null && val !== undefined)
+        .map(val => typeof val === 'string' ? parseFloat(val) : val);
+    if (numericValues.length === 0) return null;
+    return Math.max(...numericValues);
+}
+
+// Actualizar reloj
+function updateClock() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    const clockElement = document.getElementById('currentTime');
+    if (clockElement) {
+        clockElement.textContent = timeString;
+    }
+}
+setInterval(updateClock, 1000);
+updateClock();
+// FUNCIÓN PRINCIPAL: Cargar Demo
+function loadDemo() {
+    console.log('🎯 Cargando demo de autos nuevos...');
+    showStatus('loading', 'Cargando datos de demostración...');
+    
+    // KPIs específicos para autos nuevos (asegúrate de incluir 'Unidades Facturadas')
+    const kpis = [
+        'Unidades Facturadas', 'Ventas Nuevos', 'Leads Nuevos', 'Test Drive Nuevos', 'Conversión % Nuevos', 'Financiamientos Nuevos',
+        'Seguros Nuevos', 'Cotizaciones Nuevos', 'Seguimientos Nuevos', 'Llamadas Nuevos', 'Satisfacción Nuevos',
+        'Tiempo Entrega', 'Post-Venta Nuevos', 'Garantías Nuevos', 'Accesorios Nuevos', 'Cross-Selling Nuevos',
+        'Up-Selling Nuevos', 'Referidos Nuevos', 'ROI Marketing Nuevos', 'Costo Lead Nuevos', 'Valor Cliente Nuevos',
+        'Inventario Nuevos', 
+        'Rotación Stock', 'Tráfico Showroom Nuevos', 'Conversión Digital Nuevos', 'Social Media Nuevos',
+        'Email Marketing Nuevos', 'WhatsApp Nuevos', 'Devoluciones Nuevos', 'Quejas Nuevos', 'NPS Nuevos',
+        'Retención Nuevos', 'Recompras Nuevos', 'Churn Rate Nuevos', 'Metas Cumplidas Nuevos', 'Capacitación Nuevos'
+    ];
+    // 10 agencias (incluye Acura Interlomas)
+    const agencies = [
+        { name: 'Honda Cuajimalpa', base: 220 },
+        { name: 'Honda Interlomas', base: 200 },
+        { name: 'KIA Interlomas', base: 180 },
+        { name: 'KIA Iztapalapa', base: 160 },
+        { name: 'MG Cuajimalpa', base: 140 },
+        { name: 'MG Interlomas', base: 120 },
+        { name: 'MG Iztapalapa', base: 110 },
+        { name: 'GWM Iztapalapa', base: 100 },
+        { name: 'GWM Morelos', base: 80 },
+        { name: 'Acura Interlomas', base: 250 }
+    ];
+    // Usar la lista de meses cronológica definida globalmente
+    const months = chronologicalMonthOrder; 
+
+    // Generar datos
+    const data = agencies.map(agency => {
+        const agencyKPIs = kpis.map(kpiName => {
+            const kpi = { name: kpiName };
+            months.forEach(month => {
+                const variation = (Math.random() - 0.5) * 0.4;
+                kpi[month] = Math.max(1, Math.round(agency.base * (1 + variation)));
+            });
+            // Asegurarse de que "Unidades Facturadas" tenga datos con variación para el gráfico
+            if (kpiName === KPI_UNIDADES_FACTURADAS) {
+                months.forEach(month => {
+                    const baseValue = agency.base / 2; // Unidades facturadas suelen ser menos que otras métricas
+                    kpi[month] = Math.max(5, Math.round(baseValue * (1 + (Math.random() - 0.5) * 0.8))); // Mayor variación para demo
+                });
+            }
+            return kpi;
+        });
+
+        return {
+            agency: agency.name,
+            kpis: agencyKPIs,
+            // Asegurarse de que los meses estén en orden cronológico para cada agencia
+            months: months 
+        };
+    });
+    console.log('✅ Datos generados:', data.length, 'agencias');
+    
+    // Guardar y mostrar
+    loadedData = data;
+    displayResults(data);
+    showStatus('success', `Demo cargada: ${data.length} agencias, ${kpis.length} KPIs`);
+}
+
+// FUNCIÓN PRINCIPAL: Conectar API REAL
+async function connectToAPI() {
+    console.log('🚀 Conectando con Google Sheets...');
+    showStatus('loading', 'Conectando con Google Sheets API...');
+    
+    try {
+        // Verificar configuración
+        if (!SPREADSHEET_ID || SPREADSHEET_ID === "TU_NUEVO_SPREADSHEET_ID_AQUI") {
+            throw new Error('⚠️ SPREADSHEET_ID no configurado correctamente');
+        }
+        
+        console.log('🔗 Usando Google Sheet ID:', SPREADSHEET_ID);
+        // Obtener metadata del spreadsheet
+        const metadataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?key=${API_KEY}`;
+        console.log('📡 Consultando metadata:', metadataUrl);
+        const metadataResponse = await fetch(metadataUrl);
+        
+        if (!metadataResponse.ok) {
+            const errorText = await metadataResponse.text();
+            console.error('❌ Error respuesta metadata:', errorText);
+            throw new Error(`Error API: ${metadataResponse.status} - ${metadataResponse.statusText}\n\nVerifica:\n1. SPREADSHEET_ID correcto\n2. Google Sheet público\n3. API_KEY válida`);
+        }
+        
+        const metadata = await metadataResponse.json();
+        const sheets = metadata.sheets || [];
+        const sheetNames = sheets.map(sheet => sheet.properties.title);
+        
+        console.log('📊 Hojas encontradas:', sheetNames);
+        // 10 agencias esperadas
+        const expectedAgencies = [
+            'Honda Cuajimalpa', 'Honda Interlomas', 'KIA Interlomas', 'KIA Iztapalapa', 
+            'MG Cuajimalpa', 'MG Interlomas', 'MG Iztapalapa', 'GWM Iztapalapa', 'GWM Morelos',
+            'Acura Interlomas'
+        ];
+        // Buscar hojas válidas (más flexible)
+        const validSheets = sheetNames.filter(name => {
+            const nameLower = name.toLowerCase();
+            return expectedAgencies.some(agency => {
+                const agencyLower = agency.toLowerCase();
+                return nameLower === agencyLower || 
+                           nameLower.includes(agencyLower.split(' ')[0]) ||
+                           agencyLower.includes(nameLower);
+            });
+        });
+        // Si no encuentra las exactas, usar todas las hojas
+        if (validSheets.length === 0) {
+            console.log('⚠️ No se encontraron hojas específicas, usando todas las hojas disponibles');
+            validSheets.push(...sheetNames.filter(name => name && name.trim() !== ''));
+        }
+        
+        console.log('✅ Hojas válidas seleccionadas:', validSheets);
+        if (validSheets.length === 0) {
+            throw new Error(`No se encontraron hojas válidas.\nHojas disponibles: ${sheetNames.join(', ')}\nEsperadas: ${expectedAgencies.join(', ')}`);
+        }
+        
+        // Procesar cada hoja
+        const loadedAgencies = [];
+        const errors = [];
+        const successes = [];
+        
+        for (const sheetName of validSheets) {
+            try {
+                console.log(`📋 Procesando hoja: ${sheetName}`);
+                const range = `${sheetName}!A:Z`;
+                const dataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}?key=${API_KEY}`;
+                
+                console.log(`📡 Consultando datos: ${dataUrl}`);
+                
+                const dataResponse = await fetch(dataUrl);
+                if (!dataResponse.ok) {
+                    const errorText = await dataResponse.text();
+                    console.error(`❌ Error en hoja ${sheetName}:`, errorText);
+                    errors.push(`${sheetName}: Error ${dataResponse.status}`);
+                    continue;
+                }
+                
+                const sheetData = await dataResponse.json();
+                if (!sheetData.values || sheetData.values.length < 2) {
+                    errors.push(`${sheetName}: Sin datos suficientes (${sheetData.values?.length || 0} filas)`);
+                    continue;
+                }
+                
+                console.log(`📊 Datos obtenidos para ${sheetName}:`, sheetData.values.length, 'filas');
+                // Procesar datos reales
+                const processedData = processRealSheetData(sheetData.values, sheetName);
+                if (processedData && processedData.kpis.length > 0) {
+                    loadedAgencies.push(processedData);
+                    successes.push(`✅ ${sheetName}: ${processedData.kpis.length} KPIs cargados`);
+                    console.log(`✅ ${sheetName} procesada exitosamente`);
+                } else {
+                    errors.push(`${sheetName}: Error procesando KPIs (datos vacíos)`);
+                    console.log(`❌ ${sheetName} falló en procesamiento`);
+                }
+                
+            } catch (error) {
+                console.error(`❌ Error procesando ${sheetName}:`, error);
+                errors.push(`${sheetName}: ${error.message}`);
+            }
+        }
+        
+        // Mostrar resultados detallados
+        console.log('📊 Resumen de carga:');
+        console.log('✅ Exitosas:', successes);
+        console.log('❌ Errores:', errors);
+        
+        if (loadedAgencies.length > 0) {
+            loadedData = loadedAgencies;
+            displayResults(loadedAgencies);
+            showStatus('success', `Datos REALES cargados: ${loadedAgencies.length} agencias desde Google Sheets`);
+            // Mostrar detalles en alert
+            const alertMessage = `🎉 ¡CONEXIÓN API EXITOSA!\n\n📊 Agencias de Autos Nuevos cargadas:\n${successes.join('\n')}\n\n✅ ${loadedAgencies.length} agencias conectadas con datos REALES`;
+            if (errors.length > 0) {
+                alertMessage += `\n\n⚠️ Algunas hojas tuvieron errores:\n${errors.slice(0, 3).join('\n')}${errors.length > 3 ? '\n...' : ''}`;
+            }
+            
+            // alert(alertMessage); // Deshabilitado el alert por defecto
+        } else {
+            throw new Error(`No se pudieron cargar datos reales.\n\nErrores encontrados:\n${errors.join('\n')}\n\nVerifica:\n1. Formato de datos en las hojas\n2. Nombres de columnas\n3. Datos numéricos válidos`);
+        }
+        
+    } catch (error) {
+        console.error('❌ Error completo en API:', error);
+        showStatus('error', `Error API: ${error.message}`);
+        
+        // Mensaje de error más útil
+        let errorMessage = `❌ Error conectando con Google Sheets:\n${error.message}`;
+        if (error.message.includes('SPREADSHEET_ID')) {
+            errorMessage += '\n\n💡 Tip: Abre tu Google Sheet y copia el ID de la URL';
+        } else if (error.message.includes('403') || error.message.includes('404')) {
+            errorMessage += '\n\n💡 Tip: Asegúrate de que el Google Sheet sea público';
+        }
+        
+        errorMessage += '\n\n¿Quieres cargar datos de demostración en su lugar?';
+        const loadDemo = confirm(errorMessage);
+        if (loadDemo) {
+            loadDemo();
+        }
+    }
+}
+
+// Función para procesar datos reales del Google Sheets
+function processRealSheetData(values, agencyName) {
+    try {
+        if (!values || values.length < 2) {
+            throw new Error('Datos insuficientes en la hoja');
+        }
+        
+        console.log(`📊 Procesando ${agencyName}:`, values.length, 'filas');
+        const headers = values[0];
+        const rows = values.slice(1);
+        
+        console.log(`🔍 Headers encontrados:`, headers);
+        // Buscar columna de KPI (más flexible)
+        let kpiColumnIndex = -1;
+        // Intentar encontrar columna de KPI
+        for (let i = 0; i < headers.length; i++) {
+            const header = headers[i];
+            if (header && typeof header === 'string') {
+                const headerLower = header.toLowerCase().trim();
+                if (headerLower.includes('kpi') || headerLower.includes('indicador') || headerLower.includes('metrica') || headerLower.includes('nombre') || headerLower.includes('concepto') || headerLower === 'a' || i === 0) { // Si es la primera columna
+                    kpiColumnIndex = i;
+                    break;
+                }
+            }
+        }
+        // Si no encuentra, usar la primera columna
+        if (kpiColumnIndex === -1) {
+            kpiColumnIndex = 0;
+            console.log('⚠️ Usando primera columna como KPI');
+        }
+        console.log(`📋 Columna KPI encontrada en índice: ${kpiColumnIndex}`);
+        // Buscar columnas de meses (más flexible)
+        const monthColumns = [];
+        const monthShort = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+        headers.forEach((header, index) => {
+            if (header && typeof header === 'string' && index !== kpiColumnIndex) {
+                const headerLower = header.toLowerCase().trim();
+                let monthMatch = null;
+
+                // Buscar mes completo o abreviado
+                for (let i = 0; i < chronologicalMonthOrder.length; i++) {
+                    const fullMonthLower = chronologicalMonthOrder[i].toLowerCase();
+                    const shortMonthLower = monthShort[i];
+                    
+                    // Condición ajustada: Debe ser el mes completo o el encabezado *comienza* con la abreviatura (para no confundir "Febrero" con "Feb/2024")
+                    if (headerLower === fullMonthLower || headerLower.startsWith(shortMonthLower)) {
+                        monthMatch = chronologicalMonthOrder[i];
+                        break;
+                    }
+                }
+                
+                if (monthMatch) {
+                    monthColumns.push({ index: index, month: monthMatch, originalHeader: header });
+                } else if (!isNaN(parseFloat(header)) && isFinite(header)) { // Si es un número (ej. "1", "2")
+                    const monthIndex = parseInt(header) - 1;
+                    if (monthIndex >= 0 && monthIndex < chronologicalMonthOrder.length) {
+                        monthColumns.push({ index: index, month: chronologicalMonthOrder[monthIndex], originalHeader: header });
+                    }
+                }
+            }
+        });
+
+        // Si no encuentra meses válidos, usar todas las columnas después de la primera como "meses genéricos"
+        if (monthColumns.length === 0) {
+            console.log('⚠️ No se encontraron meses específicos, usando todas las columnas después del KPI');
+            for (let i = kpiColumnIndex + 1; i < headers.length; i++) {
+                if (headers[i]) {
+                    // Usar el encabezado como nombre de mes, asegurando que se limpie y no esté duplicado
+                    const headerName = headers[i].toString().trim();
+                    if (headerName && !monthColumns.some(col => col.month === headerName)) {
+                         monthColumns.push({ index: i, month: headerName, originalHeader: headers[i] });
+                    }
+                }
+            }
+        }
+        
+        // Asegurarse de que monthColumns estén ordenadas cronológicamente
+        monthColumns.sort((a, b) => {
+            const indexA = chronologicalMonthOrder.indexOf(a.month);
+            const indexB = chronologicalMonthOrder.indexOf(b.month);
+            if (indexA === -1 || indexB === -1) {
+                // Si no es un mes cronológico, mantener el orden por índice original (si es posible)
+                return a.index - b.index;
+            }
+            return indexA - indexB;
+        });
+
+        console.log(`📅 Columnas de meses encontradas y ordenadas:`, monthColumns.map(col => col.month));
+        if (monthColumns.length === 0) {
+            throw new Error('No se encontraron columnas de datos');
+        }
+        // Función para convertir valores
+        function parseValue(value) {
+            if (value === null || value === undefined || value === '') {
+                return 0;
+            }
+            // Si ya es un número
+            if (typeof value === 'number') {
+                return isNaN(value) ? 0 : value;
+            }
+            // Si es string, limpiar y convertir
+            if (typeof value === 'string') {
+                // Remover espacios, comas, símbolos de moneda, y reemplazar coma por punto si es necesario
+                let cleanValue = value.toString()
+                    .replace(/[\s\$,€£¥₹]/g, '')
+                    .replace(/[()]/g, '')
+                    .replace(/,/g, '.') // Si usa coma como separador decimal (necesario para el float en JS)
+                    .trim();
+                // Si está vacío después de limpiar
+                if (cleanValue === '' || cleanValue === '-') {
+                    return 0;
+                }
+                // Intentar convertir a número
+                const numValue = parseFloat(cleanValue);
+                return isNaN(numValue) ? 0 : numValue;
+            }
+            return 0;
+        }
+        // Procesar KPIs
+        const kpis = [];
+        const availableMonths = monthColumns.map(col => col.month);
+        console.log(`🔄 Procesando ${rows.length} filas de datos...`);
+        rows.forEach((row, rowIndex) => {
+            if (!row || row.length === 0) return;
+            const kpiName = row[kpiColumnIndex];
+            if (kpiName && kpiName.toString().trim()) {
+                const kpi = { name: kpiName.toString().trim() };
+                monthColumns.forEach(monthCol => {
+                    const rawValue = row[monthCol.index];
+                    const parsedValue = parseValue(rawValue);
+                    kpi[monthCol.month] = parsedValue;
+                });
+                kpis.push(kpi);
+            }
+        });
+        console.log(`✅ ${agencyName} procesada: ${kpis.length} KPIs`);
+        const sampleKpis = kpis.slice(0, 3);
+        console.log(`📋 Muestra de KPIs procesados:`, sampleKpis);
+        return { agency: agencyName, kpis: kpis, months: availableMonths };
+    } catch (error) {
+        console.error(`❌ Error procesando ${agencyName}:`, error);
+        return null;
+    }
+}
+
+// Función para mostrar estado
+function showStatus(type, message) {
+    const statusDiv = document.getElementById('status');
+    const statusIcon = document.getElementById('statusIcon');
+    const statusText = document.getElementById('statusText');
+    statusDiv.classList.remove('hidden');
+    statusText.textContent = message;
+    // Limpiar clases previas
+    statusDiv.className = statusDiv.className.replace(/border-\w+-500/g, '');
+    statusIcon.className = statusIcon.className.replace(/text-\w+-500/g, '').replace(/fas fa-\w+/g, '');
+    switch(type) {
+        case 'loading':
+            statusDiv.classList.add('border-blue-500');
+            statusIcon.classList.add('fas', 'fa-spinner', 'fa-spin', 'text-blue-500');
+            break;
+        case 'success':
+            statusDiv.classList.add('border-green-500');
+            statusIcon.classList.add('fas', 'fa-check-circle', 'text-green-500');
+            break;
+        case 'error':
+            statusDiv.classList.add('border-red-500');
+            statusIcon.classList.add('fas', 'fa-exclamation-triangle', 'text-red-500');
+            break;
+    }
+}
+
+// Función para mostrar resultados (originalmente `displayResults`)
+function displayResults(data) {
+    console.log('📊 Mostrando resultados para', data.length, 'agencias');
+    document.getElementById('results').classList.remove('hidden');
+
+    allKPIs = [];
+    allMonths = [];
+    const agenciesLoaded = [];
+
+    data.forEach(agencyData => {
+        agenciesLoaded.push(agencyData.agency);
+        agencyData.kpis.forEach(kpi => {
+            if (!allKPIs.includes(kpi.name)) {
+                allKPIs.push(kpi.name);
+            }
+        });
+        // Ensure month order for each agency is consistent with the global chronological order
+        agencyData.months.forEach(month => {
+            if (!allMonths.includes(month)) {
+                allMonths.push(month);
+            }
+        });
+    });
+
+    // Ordenar allMonths cronológicamente
+    allMonths.sort((a, b) => {
+        const indexA = chronologicalMonthOrder.indexOf(a);
+        const indexB = chronologicalMonthOrder.indexOf(b);
+        if (indexA === -1 || indexB === -1) { // Si no es un mes esperado, ordenar alfabéticamente
+            return a.localeCompare(b);
+        }
+        return indexA - indexB;
+    });
+
+    // Populate agency selector for single agency analysis
+    const singleAgencySelect = document.getElementById('singleAgencySelect');
+    singleAgencySelect.innerHTML = '<option value="">Selecciona una agencia...</option>';
+    agenciesLoaded.sort().forEach(agencyName => { // Agencias se ordenan alfabéticamente
+        const option = document.createElement('option');
+        option.value = agencyName;
+        option.textContent = agencyName;
+        singleAgencySelect.appendChild(option);
+    });
+
+    populateCheckboxes('agencyCheckboxes', agenciesLoaded.sort(), selectedAgencies, 'agency'); // Pass agencies sorted alphabetically
+    populateCheckboxes('monthCheckboxes', allMonths, selectedMonths, 'month'); // Pass allMonths (chronological)
+
+    updateAgencyCount();
+    updateMonthCount();
+    updateTotalKPIs();
+}
+
+// Populate checkboxes function
+function populateCheckboxes(containerId, items, selectedArray, type) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = ''; // Clear previous checkboxes
+
+    // IMPORTANT: Removed items.sort() here.
+    // The items array should be pre-sorted chronologically for months,
+    // and alphabetically for agencies before being passed to this function.
+    items.forEach(item => { 
+        const id = `${type}-${item.replace(/\s/g, '-')}`;
+        const isChecked = selectedArray.includes(item);
+        const checkboxDiv = document.createElement('div');
+        checkboxDiv.className = 'flex items-center';
+        checkboxDiv.innerHTML = `
+            <input type="checkbox" id="${id}" value="${item}" class="form-checkbox h-5 w-5 text-purple-600 bg-white/10 border-white/20 rounded focus:ring-purple-500" ${isChecked ? 'checked' : ''}>
+            <label for="${id}" class="ml-3 text-white text-md cursor-pointer">${item}</label>
+        `;
+        checkboxDiv.querySelector('input').addEventListener('change', (event) => {
+            if (event.target.checked) {
+                if (!selectedArray.includes(item)) {
+                    selectedArray.push(item);
+                }
+            } else {
+                const index = selectedArray.indexOf(item);
+                if (index > -1) {
+                    selectedArray.splice(index, 1);
+                }
+            }
+            if (type === 'agency') {
+                updateAgencyCount();
+            } else if (type === 'month') {
+                updateMonthCount();
+            } else if (type === 'singleMonth') { // Manejar los meses de la tabla individual
+                document.getElementById('singleMonthCount').textContent = `Meses (${singleSelectedMonths.length})`;
+            }
+        });
+        container.appendChild(checkboxDiv);
+    });
+}
+
+// Select/Deselect All Agencies
+function selectAllAgencies() {
+    selectedAgencies = [...loadedData.map(d => d.agency)];
+    // Ensure agencies are sorted alphabetically here if needed for the display
+    const sortedAgencies = loadedData.map(d => d.agency).sort(); 
+    populateCheckboxes('agencyCheckboxes', sortedAgencies, selectedAgencies, 'agency');
+    updateAgencyCount();
+}
+
+function deselectAllAgencies() {
+    selectedAgencies = [];
+    const sortedAgencies = loadedData.map(d => d.agency).sort();
+    populateCheckboxes('agencyCheckboxes', sortedAgencies, selectedAgencies, 'agency');
+    updateAgencyCount();
+}
+
+// Update counts
+function updateAgencyCount() {
+    document.getElementById('agencyCount').textContent = `Agencias (${selectedAgencies.length}/${loadedData.length})`;
+}
+
+function updateMonthCount() {
+    document.getElementById('monthCount').textContent = `Meses (${selectedMonths.length})`;
+}
+
+function updateTotalKPIs() {
+    document.getElementById('totalKPIs').textContent = allKPIs.length;
+}
+
+function updatePeriodsCount() {
+    document.getElementById('totalPeriods').textContent = selectedMonths.length;
+}
+
+// Function to generate random colors for charts
+function generateColors(numColors) {
+    const colors = [];
+    for (let i = 0; i < numColors; i++) {
+        const hue = (i * 137.508) % 360; // Use golden angle approximation
+        colors.push(`hsla(${hue}, 70%, 60%, 0.7)`); // Softer colors
+    }
+    return colors;
+}
+
+// Update Main Analysis Table AND Pie Chart
+function updateAnalysis() {
+    if (selectedAgencies.length === 0 || selectedMonths.length === 0) {
+        showStatus('error', 'Selecciona al menos una agencia y un mes para el análisis.');
+        // Ocultar gráficos si no hay datos seleccionados
+        document.getElementById('pieChartContainer').classList.add('hidden');
+        return;
+    }
+
+    showStatus('loading', 'Actualizando análisis principal por agencia...');
+    const tableHeader = document.getElementById('tableHeader');
+    const tableBody = document.getElementById('tableBody');
+
+    // Clear table
+    tableHeader.innerHTML = '';
+    tableBody.innerHTML = '';
+
+    // Sort selectedAgencies alphabetically for consistent column order
+    selectedAgencies.sort();
+    // Sort selectedMonths chronologically for trend calculation
+    selectedMonths.sort((a, b) => {
+        return chronologicalMonthOrder.indexOf(a) - chronologicalMonthOrder.indexOf(b);
+    });
+
+    // Create header row dynamically based on selected months
+    let headers = ['KPI', ...selectedAgencies, 'Promedio General'];
+    if (selectedMonths.length >= 2) {
+        headers.push('Tendencia General');
+    }
+    
+    headers.forEach(headerText => {
+        const th = document.createElement('th');
+        th.textContent = headerText;
+        if (headerText === 'Promedio General') { // Apply blue background to Promedio General header
+            th.classList.add('bg-blue-800/50');
+        }
+        tableHeader.appendChild(th);
+    });
+
+    // Datos para el gráfico de pastel
+    const pieChartLabels = [];
+    const pieChartData = [];
+
+    // Populate table body
+    allKPIs.forEach(kpiName => { // No sorting here, uses the order from allKPIs array
+        const tr = document.createElement('tr');
+        const kpiCell = document.createElement('td');
+        kpiCell.textContent = kpiName;
+        kpiCell.classList.add('font-medium', 'text-left');
+        tr.appendChild(kpiCell);
+
+        const rowAgencyValues = []; // To store values for highest highlight and Promedio General for this KPI row
+        
+        let firstMonthOverallValue = 0;
+        let lastMonthOverallValue = 0;
+        let firstMonthOverallCount = 0;
+        let lastMonthOverallCount = 0;
+
+        const firstSelectedMonth = selectedMonths[0];
+        const lastSelectedMonth = selectedMonths[selectedMonths.length - 1];
+
+        // Loop through selectedAgencies for agency-specific columns
+        selectedAgencies.forEach(agencyName => {
+            const agencyData = loadedData.find(a => a.agency === agencyName);
+            let agencyKpiSumForSelectedMonths = 0;
+            let agencyKpiCountForSelectedMonths = 0;
+
+            if (agencyData) {
+                const kpiData = agencyData.kpis.find(k => k.name === kpiName);
+                if (kpiData) {
+                    selectedMonths.forEach(month => {
+                        const value = kpiData[month];
+                        if (typeof value === 'number' && !isNaN(value)) {
+                            agencyKpiSumForSelectedMonths += value;
+                            agencyKpiCountForSelectedMonths++;
+
+                            // Aggregate for overall trend calculation
+                            if (month === firstSelectedMonth) {
+                                firstMonthOverallValue += value;
+                                firstMonthOverallCount++;
+                            }
+                            if (month === lastSelectedMonth) {
+                                lastMonthOverallValue += value;
+                                lastMonthOverallCount++;
+                            }
+                        }
+                    });
+                }
+            }
+            
+            const agencyKpiAvg = agencyKpiCountForSelectedMonths > 0 ? 
+                                     agencyKpiSumForSelectedMonths / agencyKpiCountForSelectedMonths : 'N/A';
+            
+            const td = document.createElement('td');
+            td.textContent = formatNumber(agencyKpiAvg);
+            
+            // Store numeric value for highest highlight and general average
+            if (typeof agencyKpiAvg === 'number' && !isNaN(agencyKpiAvg)) {
+                rowAgencyValues.push({ value: agencyKpiAvg, element: td });
+                // NEW: Collect data for Pie Chart for "Unidades Facturadas" KPI
+                if (kpiName === KPI_UNIDADES_FACTURADAS) {
+                    pieChartLabels.push(agencyName);
+                    pieChartData.push(agencyKpiAvg);
+                }
+            } else {
+                rowAgencyValues.push({ value: 'N/A', element: td }); // Store N/A to maintain structure
+            }
+            tr.appendChild(td);
+        });
+
+        // Find and highlight highest value(s) in agency columns
+        const numericValuesInRow = rowAgencyValues
+            .filter(item => typeof item.value === 'number')
+            .map(item => item.value);
+        
+        if (numericValuesInRow.length > 0) {
+            const highestInRow = Math.max(...numericValuesInRow);
+            rowAgencyValues.forEach(item => {
+                if (item.value === highestInRow) {
+                    item.element.classList.add('highest-value');
+                }
+            });
+        }
+
+        // Calculate and add Promedio General (average across selected agencies for this KPI)
+        const totalNumericValuesInRow = numericValuesInRow.reduce((sum, val) => sum + val, 0);
+        const promedioGeneral = numericValuesInRow.length > 0 ? 
+                                 totalNumericValuesInRow / numericValuesInRow.length : 'N/A';
+        const promedioGeneralCell = document.createElement('td');
+        promedioGeneralCell.textContent = formatNumber(promedioGeneral);
+        promedioGeneralCell.classList.add('bg-blue-800/50'); // Apply blue background to Promedio General cell
+        tr.appendChild(promedioGeneralCell);
+
+        // Calculate and add Tendencia General ONLY if 2 or more months are selected
+        if (selectedMonths.length >= 2) {
+            const tendenciaCell = document.createElement('td');
+            const firstMonthAvg = firstMonthOverallCount > 0 ? firstMonthOverallValue / firstMonthOverallCount : 'N/A';
+            const lastMonthAvg = lastMonthOverallCount > 0 ? lastMonthOverallValue / lastMonthOverallCount : 'N/A';
+
+            if (typeof firstMonthAvg === 'number' && typeof lastMonthAvg === 'number' && firstMonthAvg !== 0) {
+                const percentageChange = ((lastMonthAvg - firstMonthAvg) / firstMonthAvg) * 100;
+                tendenciaCell.textContent = `${formatNumber(percentageChange)}%`;
+
+                if (percentageChange < 0) {
+                    tendenciaCell.classList.add('tendencia-roja');
+                } else if (percentageChange >= 0 && percentageChange <= 5) { // Adjusted threshold for yellow
+                    tendenciaCell.classList.add('tendencia-amarilla');
+                } else { // percentageChange > 5
+                    tendenciaCell.classList.add('tendencia-verde');
+                }
+            } else {
+                tendenciaCell.textContent = 'N/A';
+            }
+            tr.appendChild(tendenciaCell);
+        }
+
+        tableBody.appendChild(tr);
+    });
+    updatePeriodsCount();
+    showStatus('success', 'Análisis principal actualizado correctamente.');
+
+    // NEW: Render Pie Chart
+    renderUnidadesFacturadasPieChart(pieChartLabels, pieChartData);
+}
+
+// Render Pie Chart
+function renderUnidadesFacturadasPieChart(labels, data) {
+    const ctx = document.getElementById('unidadesFacturadasPieChart').getContext('2d');
+
+    // Destroy existing chart if it exists
+    if (unidadesFacturadasPieChart) {
+        unidadesFacturadasPieChart.destroy();
+    }
+
+    // Check if there's actual data to display
+    const totalData = data.reduce((sum, val) => sum + val, 0);
+    if (labels.length === 0 || totalData === 0) {
+        document.getElementById('pieChartContainer').classList.add('hidden');
+        return;
+    } else {
+        document.getElementById('pieChartContainer').classList.remove('hidden');
+    }
+
+    const backgroundColors = generateColors(labels.length); // Use the new color generator
+
+    unidadesFacturadasPieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: backgroundColors,
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        color: 'white',
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed !== null) {
+                                label += formatNumber(context.parsed) + ' Unidades';
+                            }
+                            return label;
+                        },
+                        afterLabel: function(context) {
+                            const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                            const percentage = (context.parsed / total * 100).toFixed(2);
+                            return `(${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+
+// Single Agency Analysis AND Line Chart
+function updateSingleAgencyMonths() {
+    singleSelectedAgency = document.getElementById('singleAgencySelect').value;
+    singleSelectedMonths = []; // Clear previously selected months
+
+    const singleMonthCheckboxesContainer = document.getElementById('singleMonthCheckboxes');
+    singleMonthCheckboxesContainer.innerHTML = ''; // Clear previous checkboxes
+
+    // NUEVO: Ocultar el gráfico de línea cuando se cambia la agencia o no hay selección
+    document.getElementById('lineChartContainer').classList.add('hidden');
+    document.getElementById('singleAgencyTableContainer').classList.add('hidden');
+
+    if (!singleSelectedAgency) {
+        singleMonthCheckboxesContainer.innerHTML = '<p class="text-gray-400 text-sm">Primero selecciona una agencia</p>';
+        document.getElementById('singleMonthCount').textContent = 'Meses (0)';
+        return;
+    }
+
+    const agencyData = loadedData.find(a => a.agency === singleSelectedAgency);
+    if (agencyData) {
+        // Asegurarse de que los meses estén en orden cronológico para la agencia seleccionada
+        const sortedAgencyMonths = [...agencyData.months].sort((a, b) => {
+            const indexA = chronologicalMonthOrder.indexOf(a);
+            const indexB = chronologicalMonthOrder.indexOf(b);
+            if (indexA === -1 || indexB === -1) {
+                 return a.localeCompare(b); // Fallback for non-standard month names
+            }
+            return indexA - indexB;
+        });
+        populateCheckboxes('singleMonthCheckboxes', sortedAgencyMonths, singleSelectedMonths, 'singleMonth');
+    }
+    document.getElementById('singleMonthCount').textContent = `Meses (${singleSelectedMonths.length})`;
+}
+
+function generateSingleAgencyTable() {
+    if (!singleSelectedAgency || singleSelectedMonths.length === 0) {
+        showStatus('error', 'Selecciona una agencia y al menos un mes para el análisis individual.');
+        // NUEVO: Ocultar el gráfico de línea si no hay selección válida
+        document.getElementById('lineChartContainer').classList.add('hidden');
+        document.getElementById('singleAgencyTableContainer').classList.add('hidden');
+        return;
+    }
+
+    showStatus('loading', `Generando análisis para ${singleSelectedAgency}...`);
+    const singleTableHeader = document.getElementById('singleTableHeader');
+    const singleTableBody = document.getElementById('singleTableBody');
+    const singleAgencyTableContainer = document.getElementById('singleAgencyTableContainer');
+
+    // Clear table
+    singleTableHeader.innerHTML = '';
+    singleTableBody.innerHTML = '';
+    singleAgencyTableContainer.classList.remove('hidden');
+
+    const agencyData = loadedData.find(a => a.agency === singleSelectedAgency);
+    if (!agencyData) {
+        showStatus('error', `No se encontraron datos para la agencia ${singleSelectedAgency}.`);
+        // NUEVO: Ocultar el gráfico de línea si no hay datos
+        document.getElementById('lineChartContainer').classList.add('hidden');
+        return;
+    }
+
+    // Sort singleSelectedMonths chronologically for consistency
+    singleSelectedMonths.sort((a, b) => {
+        return chronologicalMonthOrder.indexOf(a) - chronologicalMonthOrder.indexOf(b);
+    });
+
+    // Create header row
+    const headers = ['KPI', ...singleSelectedMonths, 'Promedio', 'Tendencia']; 
+    headers.forEach(headerText => {
+        const th = document.createElement('th');
+        th.textContent = headerText;
+        if (headerText === 'Promedio') {
+            th.classList.add('bg-blue-800/50'); // Add distinct background to Promedio header
+        }
+        singleTableHeader.appendChild(th);
+    });
+
+    // Datos para el gráfico de líneas
+    const lineChartLabels = [];
+    const lineChartData = [];
+    const kpiUnidadesFacturadasData = agencyData.kpis.find(kpi => kpi.name === KPI_UNIDADES_FACTURADAS);
+    
+    if (kpiUnidadesFacturadasData) {
+        singleSelectedMonths.forEach(month => {
+            lineChartLabels.push(month);
+            lineChartData.push(kpiUnidadesFacturadasData[month] || 0); // Usar 0 si no hay valor
+        });
+    }
+
+    // Populate table body
+    agencyData.kpis.forEach(kpi => {
+        const tr = document.createElement('tr');
+        const kpiCell = document.createElement('td');
+        kpiCell.textContent = kpi.name;
+        kpiCell.classList.add('font-medium', 'text-left');
+        tr.appendChild(kpiCell);
+
+        const monthlyValueCells = []; // Array to store {value, element} for monthly data
+        const currentMonthValues = []; // Array to store numeric values for Promedio/Tendencia calculation
+
+        // Asegurarse de que los valores se obtengan en el orden de singleSelectedMonths
+        singleSelectedMonths.forEach(month => {
+            const value = kpi[month];
+            const td = document.createElement('td');
+            td.textContent = formatNumber(value);
+            monthlyValueCells.push({ value: value, element: td }); // Store value and element
+
+            if (typeof value === 'number' && !isNaN(value)) {
+                currentMonthValues.push(value); // Only add valid numbers for calculations
+            }
+            tr.appendChild(td);
+        });
+
+        // Find and highlight the highest value(s) within the monthly cells for this KPI
+        if (currentMonthValues.length > 0) {
+            const highestInMonthlyRow = Math.max(...currentMonthValues);
+            monthlyValueCells.forEach(item => {
+                if (typeof item.value === 'number' && item.value === highestInMonthlyRow) {
+                    item.element.classList.add('highest-value'); // Reusing existing class
+                }
+            });
+        }
+
+        // Calculate and add Promedio
+        const sum = currentMonthValues.reduce((acc, val) => acc + val, 0);
+        const promedio = currentMonthValues.length > 0 ? sum / currentMonthValues.length : 'N/A';
+        const promedioCell = document.createElement('td');
+        promedioCell.textContent = formatNumber(promedio);
+        promedioCell.classList.add('bg-blue-800/50'); // Add distinct background to Promedio cell
+        tr.appendChild(promedioCell);
+
+        // Calculate and add Tendencia
+        const tendenciaCell = document.createElement('td');
+        if (currentMonthValues.length >= 2) {
+            const lastValue = currentMonthValues[currentMonthValues.length - 1];
+            const secondLastValue = currentMonthValues[currentMonthValues.length - 2];
+
+            if (typeof lastValue === 'number' && typeof secondLastValue === 'number' && secondLastValue !== 0) {
+                const percentageChange = ((lastValue - secondLastValue) / secondLastValue) * 100;
+                tendenciaCell.textContent = `${formatNumber(percentageChange)}%`;
+
+                if (percentageChange < 0) {
+                    tendenciaCell.classList.add('tendencia-roja');
+                } else if (percentageChange >= 0 && percentageChange <= 5) {
+                    tendenciaCell.classList.add('tendencia-amarilla');
+                } else { // percentageChange > 5
+                    tendenciaCell.classList.add('tendencia-verde');
+                }
+            } else {
+                tendenciaCell.textContent = 'N/A';
+            }
+        } else {
+            tendenciaCell.textContent = 'N/A';
+        }
+        tr.appendChild(tendenciaCell);
+
+        singleTableBody.appendChild(tr);
+    });
+
+    showStatus('success', `Análisis individual para ${singleSelectedAgency} generado.`);
+
+    // NEW: Render Line Chart
+    document.getElementById('selectedAgencyForLineChart').textContent = singleSelectedAgency;
+    renderUnidadesFacturadasLineChart(lineChartLabels, lineChartData);
+}
+
+// Render Line Chart
+function renderUnidadesFacturadasLineChart(labels, data) {
+    const ctx = document.getElementById('unidadesFacturadasLineChart').getContext('2d');
+
+    // Destroy existing chart if it exists
+    if (unidadesFacturadasLineChart) {
+        unidadesFacturadasLineChart.destroy();
+    }
+
+    // Check if there's actual data to display
+    const totalData = data.reduce((sum, val) => sum + val, 0);
+    if (labels.length === 0 || totalData === 0) {
+        document.getElementById('lineChartContainer').classList.add('hidden');
+        return;
+    } else {
+        document.getElementById('lineChartContainer').classList.remove('hidden');
+    }
+
+    unidadesFacturadasLineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Unidades Facturadas',
+                data: data,
+                borderColor: 'rgba(59, 130, 246, 0.8)', // Blue-500
+                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: 'white',
+                pointBorderColor: 'rgba(59, 130, 246, 1)',
+                pointHoverBackgroundColor: 'rgba(255,255,255,1)',
+                pointHoverBorderColor: 'rgba(59, 130, 246, 1)',
+                pointRadius: 5,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false // No need for legend as there's only one dataset
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${formatNumber(context.parsed.y)} Unidades`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Mes',
+                        color: 'white'
+                    },
+                    ticks: {
+                        color: 'white'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Unidades',
+                        color: 'white'
+                    },
+                    ticks: {
+                        color: 'white',
+                        callback: function(value) {
+                            return formatNumber(value);
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+
+// Export to Excel for Main Table
+function exportMainTableToExcel() {
+    if (selectedAgencies.length === 0 || selectedMonths.length === 0) {
+        alert('No hay datos para exportar. Por favor, selecciona agencias y meses.');
+        return;
+    }
+
+    try {
+        // Ensure selectedAgencies and selectedMonths are sorted for consistent export
+        selectedAgencies.sort();
+        selectedMonths.sort((a, b) => chronologicalMonthOrder.indexOf(a) - chronologicalMonthOrder.indexOf(b));
+
+        let headers = ['KPI', ...selectedAgencies, 'Promedio General'];
+        if (selectedMonths.length >= 2) {
+            headers.push('Tendencia General');
+        }
+        const data = [headers];
+
+        allKPIs.forEach(kpiName => { // No sorting here, uses the order from allKPIs array
+            const row = [kpiName];
+            const rowAgencyValues = []; // For Promedio General
+            
+            let firstMonthOverallValue = 0;
+            let lastMonthOverallValue = 0;
+            let firstMonthOverallCount = 0;
+            let lastMonthOverallCount = 0;
+
+            const firstSelectedMonth = selectedMonths[0];
+            const lastSelectedMonth = selectedMonths[selectedMonths.length - 1];
+
+            selectedAgencies.forEach(agencyName => {
+                const agencyData = loadedData.find(a => a.agency === agencyName);
+                let agencyKpiSumForSelectedMonths = 0;
+                let agencyKpiCountForSelectedMonths = 0;
+
+                if (agencyData) {
+                    const kpiData = agencyData.kpis.find(k => k.name === kpiName);
+                    if (kpiData) {
+                        selectedMonths.forEach(month => {
+                            const value = kpiData[month];
+                            if (typeof value === 'number' && !isNaN(value)) {
+                                agencyKpiSumForSelectedMonths += value;
+                                agencyKpiCountForSelectedMonths++;
+
+                                if (month === firstSelectedMonth) {
+                                    firstMonthOverallValue += value;
+                                    firstMonthOverallCount++;
+                                }
+                                if (month === lastSelectedMonth) {
+                                    lastMonthOverallValue += value;
+                                    lastMonthOverallCount++;
+                                }
+                            }
+                        });
+                    }
+                }
+                const agencyKpiAvg = agencyKpiCountForSelectedMonths > 0 ? 
+                                         agencyKpiSumForSelectedMonths / agencyKpiCountForSelectedMonths : 'N/A';
+                row.push(agencyKpiAvg === 'N/A' ? 'N/A' : parseFloat(agencyKpiAvg.toFixed(2)));
+                if (typeof agencyKpiAvg === 'number') {
+                    rowAgencyValues.push(agencyKpiAvg);
+                }
+            });
+
+            // Promedio General
+            const totalNumericValuesInRow = rowAgencyValues.reduce((sum, val) => sum + val, 0); // Corrected: use rowAgencyValues here
+            const promedioGeneral = rowAgencyValues.length > 0 ? 
+                                     totalNumericValuesInRow / rowAgencyValues.length : 'N/A';
+            row.push(promedioGeneral === 'N/A' ? 'N/A' : parseFloat(promedioGeneral.toFixed(2)));
+
+            // Tendencia General ONLY if 2 or more months are selected
+            if (selectedMonths.length >= 2) {
+                let tendenciaText = 'N/A';
+                const firstMonthAvg = firstMonthOverallCount > 0 ? firstMonthOverallValue / firstMonthOverallCount : 'N/A';
+                const lastMonthAvg = lastMonthOverallCount > 0 ? lastMonthOverallValue / lastMonthOverallCount : 'N/A';
+
+                if (typeof firstMonthAvg === 'number' && typeof lastMonthAvg === 'number' && firstMonthAvg !== 0) {
+                    const percentageChange = ((lastMonthAvg - firstMonthAvg) / firstMonthAvg) * 100;
+                    tendenciaText = `${percentageChange.toFixed(2)}%`;
+                }
+                row.push(tendenciaText);
+            }
+            data.push(row);
+        });
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        XLSX.utils.book_append_sheet(wb, ws, "KPIs_Agencias");
+
+        const filename = `KPIs_Autos_Nuevos_Agencias_${new Date().toLocaleDateString('es-ES').replace(/\//g, '-')}.xlsx`;
+        XLSX.writeFile(wb, filename);
+
+        showStatus('success', 'Archivo Excel exportado correctamente.');
+
+    } catch (error) {
+        console.error('Error exportando Excel:', error);
+        alert('Error al exportar archivo Excel');
+    }
+}
+
+// Export to Excel for Single Agency Table
+function exportSingleTableToExcel() {
+    if (!singleSelectedAgency || singleSelectedMonths.length === 0) {
+        alert('No hay datos para exportar');
+        return;
+    }
+    
+    try {
+        const agency = loadedData.find(a => a.agency === singleSelectedAgency);
+        
+        // Sort singleSelectedMonths chronologically for consistent export
+        singleSelectedMonths.sort((a, b) => chronologicalMonthOrder.indexOf(a) - chronologicalMonthOrder.indexOf(b));
+
+        // Obtener datos de la tabla
+        const headers = ['KPI', ...singleSelectedMonths, 'Promedio', 'Tendencia'];
+        const data = [headers];
+        
+        // Agregar filas de datos
+        agency.kpis.forEach(kpi => {
+            const row = [kpi.name];
+            const currentMonthNumericValuesForCalc = []; // Store only valid numbers for sum/avg/trend
+
+            singleSelectedMonths.forEach(month => {
+                const value = kpi[month];
+                if (typeof value === 'number' && !isNaN(value)) {
+                    currentMonthNumericValuesForCalc.push(value);
+                }
+                row.push(value !== 'N/A' ? parseFloat(value) : 'N/A'); // Ensure number for Excel
+            });
+
+            // Calculate Promedio for export
+            const sum = currentMonthNumericValuesForCalc.reduce((acc, val) => acc + val, 0);
+            const promedio = currentMonthNumericValuesForCalc.length > 0 ? sum / currentMonthNumericValuesForCalc.length : 'N/A';
+            row.push(promedio === 'N/A' ? 'N/A' : parseFloat(promedio.toFixed(2)));
+
+            // Calculate Tendencia for export
+            let tendenciaText = 'N/A';
+            if (currentMonthNumericValuesForCalc.length >= 2) {
+                const lastValue = currentMonthNumericValuesForCalc[currentMonthNumericValuesForCalc.length - 1];
+                const secondLastValue = currentMonthNumericValuesForCalc[currentMonthNumericValuesForCalc.length - 2];
+
+                if (typeof lastValue === 'number' && typeof secondLastValue === 'number' && secondLastValue !== 0) {
+                    const percentageChange = ((lastValue - secondLastValue) / secondLastValue) * 100;
+                    tendenciaText = `${percentageChange.toFixed(2)}%`;
+                }
+            }
+            row.push(tendenciaText);
+
+            data.push(row);
+        });
+        
+        // Crear workbook
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        
+        // Agregar worksheet
+        XLSX.utils.book_append_sheet(wb, ws, singleSelectedAgency);
+        
+        // Descargar archivo
+        const filename = `${singleSelectedAgency}_KPIs_${new Date().toLocaleDateString('es-ES').replace(/\//g, '-')}.xlsx`;
+        XLSX.writeFile(wb, filename);
+        
+        showStatus('success', 'Archivo Excel exportado correctamente.');
+        
+    } catch (error) {
+        console.error('Error exportando Excel:', error);
+        alert('Error al exportar archivo Excel');
+    }
+}
+
+// Inicialización del dashboard
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🎉 Dashboard KPIs Autos Nuevos Daytona cargado correctamente');
+    updateClock(); // Asegura que el reloj inicie inmediatamente
+    
+    // INTENTO DE CONEXIÓN A LA API - Si falla, se muestra el botón de Demo.
+    try {
+        await connectToAPI();
+    } catch (error) {
+        // La función connectToAPI ya maneja la carga de la demo si es un error de API. 
+        // Si hay otro error, se mostrará el mensaje de error y el usuario puede cargar la demo.
+    }
+});
 </script>
 </body>
 </html>
