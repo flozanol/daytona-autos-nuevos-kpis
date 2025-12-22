@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard KPIs Autos Nuevos - Grupo Daytona</title>
+    <title>Dashboard Gerencial - Grupo Daytona</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -13,890 +12,574 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); }
+        .glass-effect { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .gradient-text { background: linear-gradient(135deg, #60A5FA, #A78BFA); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .btn-primary { background: linear-gradient(135deg, #3B82F6, #2563EB); transition: 0.3s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); }
         
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-        }
+        /* Tablas */
+        table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        th, td { border: 1px solid rgba(255,255,255,0.1); padding: 10px; text-align: center; white-space: nowrap; font-size: 0.8rem; color: #e2e8f0; }
+        th { background: rgba(15, 23, 42, 0.95); position: sticky; top: 0; z-index: 20; color: #93c5fd; }
+        /* Primera columna fija */
+        td:first-child, th:first-child { position: sticky; left: 0; background: rgba(15, 23, 42, 0.95); z-index: 15; text-align: left; font-weight: 600; border-right: 2px solid rgba(255,255,255,0.1); }
+        th:first-child { z-index: 25; }
         
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .ai-card {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
-        }
-
-        .typing-cursor::after {
-            content: '|';
-            animation: blink 1s step-start infinite;
-        }
-
-        @keyframes blink {
-            50% { opacity: 0; }
-        }
-        
-        .card-hover { transition: all 0.3s ease; }
-        .card-hover:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        }
-        
-        .gradient-text {
-            background: linear-gradient(135deg, #f59e0b, #ef4444);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #ef4444, #f59e0b);
-            transition: all 0.3s ease;
-        }
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
-        }
-        
-        .btn-secondary {
-            background: linear-gradient(135deg, #10b981, #059669);
-            transition: all 0.3s ease;
-        }
-        .btn-secondary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
-        }
-        
+        /* Semáforos y Utilidades */
+        .trend-up { color: #4ade80; font-weight: bold; }
+        .trend-down { color: #f87171; font-weight: bold; }
+        .trend-neutral { color: #fbbf24; font-weight: bold; }
+        .highest-val { background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #4ade80; font-weight: bold; }
+        .avg-col { background: rgba(59, 130, 246, 0.1); }
         .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
-        .scrollbar-thin::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); border-radius: 3px; }
-        .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(239, 68, 68, 0.5); border-radius: 3px; }
-        
-        .stat-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-        }
-        
-        table { border-collapse: separate; border-spacing: 0; table-layout: auto; }
-        th, td { border: 1px solid rgba(255, 255, 255, 0.1); padding: 8px 10px; text-align: center; white-space: nowrap; }
-        th { background: rgba(255, 255, 255, 0.1); color: white; font-weight: 600; position: sticky; top: 0; z-index: 20; }
-        
-        #tableBody td:first-child, #tableHeader th:first-child,
-        #singleAgencyTable #singleTableBody td:first-child, #singleAgencyTable #singleTableHeader th:first-child {
-            position: sticky; left: 0; background: rgba(15, 23, 42, 0.9); z-index: 15; border-right: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        #tableHeader th:first-child, #singleAgencyTable #singleTableHeader th:first-child { z-index: 25; }
-
-        td { color: rgba(255, 255, 255, 0.9); font-size: 0.75rem; }
-        tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
-        tr:hover { background: rgba(255, 255, 255, 0.05); }
-        
-        .highest-value { background: rgba(34, 197, 94, 0.2) !important; color: #22c55e !important; font-weight: 600; border: 1px solid rgba(34, 197, 94, 0.3) !important; }
-        .tendencia-roja { color: #ef4444 !important; font-weight: 600; }
-        .tendencia-amarilla { color: #f59e0b !important; font-weight: 600; }
-        .tendencia-verde { color: #22c55e !important; font-weight: 600; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
     </style>
 </head>
-<body class="min-h-screen">
-    <nav class="glass-effect border-b border-white/10 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 py-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <img src="https://api.grupodaytona.com/files/images/full-xzLxpZqXUE-1728519042236.png" alt="Grupo Daytona" class="w-10 h-10 rounded-lg object-contain bg-white/10 p-1">
-                    <div>
-                        <h1 class="text-xl font-bold text-white">Grupo Daytona</h1>
-                        <p class="text-sm text-gray-300">Dashboard KPIs Autos Nuevos - Cierre Anual</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <div class="hidden md:flex items-center space-x-2 text-gray-300">
-                        <i class="fas fa-clock text-sm"></i>
-                        <span class="text-sm" id="currentTime"></span>
-                    </div>
-                </div>
+<body class="min-h-screen text-white">
+
+    <nav class="glass-effect border-b border-white/10 sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <img src="https://api.grupodaytona.com/files/images/full-xzLxpZqXUE-1728519042236.png" class="w-8 h-8 object-contain">
+            <div>
+                <h1 class="text-lg font-bold">Grupo Daytona</h1>
+                <p class="text-xs text-gray-400">Dashboard Gerencial 360°</p>
             </div>
         </div>
+        <div class="text-sm text-gray-400 font-mono" id="clock">--:--</div>
     </nav>
 
     <div class="max-w-7xl mx-auto px-6 py-8">
-        <div class="text-center mb-12">
-            <h2 class="text-5xl font-bold gradient-text mb-4">
-                Análisis Gerencial Autos Nuevos
-            </h2>
-            <p class="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-                Revisión de resultados, tendencias y proyecciones
-            </p>
-        </div>
-
-        <div class="flex justify-center space-x-6 mb-12">
-            <button onclick="loadDemo()" class="btn-primary px-8 py-4 rounded-xl text-white font-semibold text-lg shadow-2xl">
-                <i class="fas fa-play mr-3"></i> Cargar Demo
-            </button>
-            <button onclick="connectToAPI()" class="btn-secondary px-8 py-4 rounded-xl text-white font-semibold text-lg shadow-2xl">
-                <i class="fas fa-link mr-3 animated-icon"></i> Conectar API
-            </button>
-        </div>
-
-        <div id="status" class="hidden mb-8">
-            <div class="glass-effect rounded-xl p-4 border-l-4">
-                <div class="flex items-center">
-                    <i id="statusIcon" class="text-2xl mr-3"></i>
-                    <p id="statusText" class="text-lg font-medium text-white"></p>
-                </div>
+        
+        <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
+            <div>
+                <h2 class="text-4xl font-bold gradient-text">Análisis de Resultados</h2>
+                <p class="text-gray-400 mt-1">Comparativas Anuales, Mensuales y Detalle por Agencia</p>
             </div>
-        </div>
-
-        <div id="results" class="hidden">
-            
-            <div class="glass-effect ai-card rounded-2xl p-6 mb-8 transform transition-all hover:scale-[1.01]">
-                <div class="flex items-start space-x-4">
-                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg">
-                        <i class="fas fa-robot text-white text-xl"></i>
-                    </div>
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold text-white mb-2 flex items-center">
-                            Daytona AI Insights
-                            <span class="ml-2 text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/30">BETA</span>
-                        </h3>
-                        <div class="bg-black/20 rounded-xl p-4 border border-white/5 min-h-[80px]">
-                            <p id="aiNarrativeText" class="text-gray-200 text-sm leading-relaxed font-mono typing-cursor">
-                                Esperando datos para generar análisis inteligente...
-                            </p>
-                        </div>
-                        <div class="mt-2 flex justify-end">
-                            <span class="text-xs text-gray-400"><i class="fas fa-bolt text-yellow-500 mr-1"></i>Análisis generado en tiempo real</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="stat-card rounded-2xl p-6 text-center">
-                    <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-building text-white text-2xl"></i>
-                    </div>
-                    <h3 class="text-3xl font-bold text-white mb-2" id="totalAgencies">0</h3>
-                    <p class="text-gray-300 font-medium">Agencias Analizadas</p>
-                </div>
-                
-                <div class="stat-card rounded-2xl p-6 text-center">
-                    <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-calendar-check text-white text-2xl"></i>
-                    </div>
-                    <h3 class="text-3xl font-bold text-white mb-2" id="totalPeriods">0</h3>
-                    <p class="text-gray-300 font-medium">Meses en Revisión</p>
-                </div>
-
-                <div class="stat-card rounded-2xl p-6 text-center">
-                    <div class="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-car-side text-white text-2xl"></i>
-                    </div>
-                    <h3 class="text-3xl font-bold text-white mb-2" id="totalVolumeDisplay">0</h3>
-                    <p class="text-gray-300 font-medium">Unidades Totales (Período)</p>
-                </div>
-            </div>
-
-            <div class="glass-effect rounded-2xl p-6 mb-8">
-                <div class="flex items-center justify-between cursor-pointer" onclick="toggleConfig()">
-                    <h3 class="text-lg font-bold text-white flex items-center">
-                        <i class="fas fa-filter mr-2 text-gray-400"></i> Filtros y Configuración
-                    </h3>
-                    <i class="fas fa-chevron-down text-white" id="configChevron"></i>
-                </div>
-                
-                <div id="configPanel" class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-8 hidden">
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <label class="text-sm font-semibold text-white">Agencias (<span id="agencyCount">0</span>)</label>
-                            <div class="space-x-2">
-                                <button onclick="selectAllAgencies()" class="text-xs text-green-400 hover:text-green-300">Todas</button>
-                                <button onclick="deselectAllAgencies()" class="text-xs text-red-400 hover:text-red-300">Ninguna</button>
-                            </div>
-                        </div>
-                        <div class="max-h-40 overflow-y-auto bg-black/20 rounded-lg p-3 scrollbar-thin">
-                            <div id="agencyCheckboxes" class="space-y-2"></div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-4">
-                        <label class="text-sm font-semibold text-white">Meses (<span id="monthCount">0</span>)</label>
-                        <div class="max-h-40 overflow-y-auto bg-black/20 rounded-lg p-3 scrollbar-thin">
-                            <div id="monthCheckboxes" class="space-y-2"></div>
-                        </div>
-                    </div>
-
-                    <div class="col-span-1 lg:col-span-2 flex justify-center mt-2">
-                        <button onclick="updateAnalysis()" class="btn-primary px-12 py-3 rounded-xl text-white font-semibold">
-                            <i class="fas fa-sync-alt mr-2"></i> Generar Reporte
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="advancedChartsContainer" class="hidden mb-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="glass-effect rounded-2xl p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="text-lg font-bold text-white"><i class="fas fa-water mr-2 text-blue-400"></i>Evolución Mensual (Waterfall)</h4>
-                    </div>
-                    <div id="waterfallChart" style="width: 100%; height: 350px;"></div>
-                    <p class="text-xs text-gray-400 mt-2 text-center">Variación neta mes contra mes del total del grupo.</p>
-                </div>
-
-                <div class="glass-effect rounded-2xl p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="text-lg font-bold text-white"><i class="fas fa-trophy mr-2 text-yellow-400"></i>Ranking Acumulado</h4>
-                    </div>
-                    <div id="rankingChart" style="width: 100%; height: 350px;"></div>
-                </div>
-            </div>
-
-            <div class="glass-effect rounded-2xl p-8 mb-8">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-2xl font-bold text-white">Matriz de KPIs</h3>
-                    <button onclick="exportMainTableToExcel()" class="px-4 py-2 bg-green-500/20 text-green-400 rounded-lg text-sm hover:bg-green-500/30 transition-all">
-                        <i class="fas fa-file-excel mr-2"></i> Excel
-                    </button>
-                </div>
-                <div class="overflow-x-auto overflow-y-auto max-h-[500px] bg-white/5 border border-white/10 rounded-xl scrollbar-thin">
-                    <table class="min-w-full text-xs">
-                        <thead><tr id="tableHeader"></tr></thead>
-                        <tbody id="tableBody" class="divide-y divide-white/10"></tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <div class="glass-effect rounded-2xl p-8 mb-8">
-                <h3 class="text-2xl font-bold text-white mb-6">Deep Dive por Agencia</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div>
-                        <label class="text-gray-400 text-sm mb-2 block">Agencia</label>
-                        <select id="singleAgencySelect" onchange="updateSingleAgencyMonths()" class="w-full p-3 bg-black/30 border border-white/20 rounded-xl text-white outline-none focus:border-blue-500"></select>
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="text-gray-400 text-sm mb-2 block">Meses a comparar (<span id="singleMonthCount">0</span>)</label>
-                        <div class="bg-black/20 p-3 rounded-xl border border-white/10 h-[52px] overflow-hidden hover:overflow-y-auto relative scrollbar-thin">
-                            <div id="singleMonthCheckboxes" class="flex flex-wrap gap-4"></div>
-                        </div>
-                    </div>
-                </div>
-                <button onclick="generateSingleAgencyTable()" class="btn-primary w-full py-3 rounded-xl text-white font-semibold mb-6">
-                    Analizar Agencia
+            <div class="flex gap-3">
+                <button onclick="loadDemo()" class="bg-gray-700 hover:bg-gray-600 px-6 py-2 rounded-lg text-sm font-medium transition-all">
+                    <i class="fas fa-play mr-2"></i>Demo
                 </button>
-                
-                <div id="singleAgencyTableContainer" class="hidden">
-                    <div class="overflow-auto max-h-96 bg-white/5 border border-white/10 rounded-xl scrollbar-thin mb-8">
-                        <table id="singleAgencyTable" class="min-w-full text-sm">
-                            <thead><tr id="singleTableHeader"></tr></thead>
-                            <tbody id="singleTableBody" class="divide-y divide-white/10"></tbody>
-                        </table>
+                <button onclick="connectToAPI()" class="btn-primary px-6 py-2 rounded-lg text-sm font-medium">
+                    <i class="fas fa-database mr-2"></i>Conectar API
+                </button>
+            </div>
+        </div>
+
+        <div id="status" class="hidden mb-6 p-4 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-200 text-sm"></div>
+
+        <div id="dashboardContent" class="hidden space-y-12">
+
+            <div class="glass-effect p-6 rounded-2xl">
+                <div class="flex justify-between items-center mb-4 cursor-pointer" onclick="document.getElementById('filtersPanel').classList.toggle('hidden')">
+                    <h3 class="text-lg font-semibold flex items-center gap-2"><i class="fas fa-filter text-blue-400"></i> Filtros Globales</h3>
+                    <i class="fas fa-chevron-down text-gray-400"></i>
+                </div>
+                <div id="filtersPanel" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2 block">Agencias</label>
+                        <div class="flex gap-2 mb-2">
+                            <button onclick="toggleAll('agency', true)" class="text-xs text-green-400 hover:underline">Todas</button>
+                            <button onclick="toggleAll('agency', false)" class="text-xs text-red-400 hover:underline">Ninguna</button>
+                        </div>
+                        <div id="agencyChecks" class="bg-black/20 p-3 rounded-lg max-h-40 overflow-y-auto scrollbar-thin grid grid-cols-2 gap-2 text-sm"></div>
                     </div>
-                    <div id="lineChartContainer" class="mt-8">
-                        <h4 class="text-lg font-bold text-white mb-4">Tendencia de Facturación</h4>
-                        <canvas id="unidadesFacturadasLineChart" class="max-h-80 w-full"></canvas>
+                    <div>
+                        <label class="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2 block">Meses (Para Acumulados)</label>
+                        <div class="flex gap-2 mb-2">
+                            <button onclick="toggleAll('month', true)" class="text-xs text-green-400 hover:underline">Todos</button>
+                            <button onclick="toggleAll('month', false)" class="text-xs text-red-400 hover:underline">Ninguno</button>
+                        </div>
+                        <div id="monthChecks" class="bg-black/20 p-3 rounded-lg max-h-40 overflow-y-auto scrollbar-thin grid grid-cols-3 gap-2 text-sm"></div>
                     </div>
+                    <button onclick="updateAllTables()" class="md:col-span-2 btn-primary py-2 rounded-lg font-bold">Aplicar Filtros</button>
                 </div>
             </div>
 
-        </div>
+            <section>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="bg-blue-500 w-1 h-8 rounded-full"></span>
+                    <h3 class="text-2xl font-bold">1. Resumen Global (Acumulado)</h3>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <div class="glass-effect p-4 rounded-2xl lg:col-span-1">
+                        <h4 class="text-sm text-gray-400 mb-2">Variación Mensual Grupo</h4>
+                        <div id="waterfallChart" style="height: 300px;"></div>
+                    </div>
+                    <div class="glass-effect p-4 rounded-2xl lg:col-span-2 overflow-hidden flex flex-col">
+                        <div class="flex justify-between mb-2">
+                            <h4 class="text-sm text-gray-400">Matriz de KPIs Acumulados</h4>
+                            <button onclick="exportTable('globalTable')" class="text-xs text-green-400 hover:text-green-300"><i class="fas fa-file-excel mr-1"></i>Excel</button>
+                        </div>
+                        <div class="overflow-auto scrollbar-thin flex-1">
+                            <table id="globalTable">
+                                <thead id="globalThead"></thead>
+                                <tbody id="globalTbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-        <footer class="mt-16 text-center text-gray-500 text-sm pb-8">
-            <p>© 2025 Grupo Daytona | Powered by Data Intelligence</p>
+            <section>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="bg-purple-500 w-1 h-8 rounded-full"></span>
+                    <h3 class="text-2xl font-bold">2. Comparativo Mensual</h3>
+                </div>
+                <div class="glass-effect p-6 rounded-2xl">
+                    <div class="flex flex-col md:flex-row gap-4 items-center mb-6 bg-black/20 p-4 rounded-xl">
+                        <label class="text-sm font-bold text-purple-300">Selecciona el Mes a Analizar:</label>
+                        <select id="compareMonthSelect" onchange="updateMonthlyComparison()" class="bg-gray-800 border border-gray-600 rounded px-4 py-2 text-white outline-none focus:border-purple-500 w-full md:w-auto">
+                            </select>
+                        <div class="text-xs text-gray-400 ml-auto">
+                            Compara todas las agencias activas en el mes seleccionado.
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-6">
+                        <div class="overflow-auto scrollbar-thin max-h-[500px]">
+                            <table id="monthlyTable">
+                                <thead id="monthlyThead"></thead>
+                                <tbody id="monthlyTbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="bg-orange-500 w-1 h-8 rounded-full"></span>
+                    <h3 class="text-2xl font-bold">3. Histórico por Agencia</h3>
+                </div>
+                <div class="glass-effect p-6 rounded-2xl">
+                    <div class="flex flex-col md:flex-row gap-4 items-center mb-6 bg-black/20 p-4 rounded-xl">
+                        <label class="text-sm font-bold text-orange-300">Selecciona Agencia:</label>
+                        <select id="historyAgencySelect" onchange="updateAgencyHistory()" class="bg-gray-800 border border-gray-600 rounded px-4 py-2 text-white outline-none focus:border-orange-500 w-full md:w-auto">
+                            </select>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 overflow-auto scrollbar-thin max-h-[500px] border border-white/10 rounded-xl">
+                            <table id="historyTable">
+                                <thead id="historyThead"></thead>
+                                <tbody id="historyTbody"></tbody>
+                            </table>
+                        </div>
+                        <div class="lg:col-span-1 bg-black/20 p-4 rounded-xl">
+                            <h4 class="text-sm text-gray-400 mb-4 text-center">Tendencia: Unidades Facturadas</h4>
+                            <canvas id="historyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+        
+        <footer class="mt-12 text-center text-gray-500 text-xs py-8 border-t border-white/5">
+            © 2025 Grupo Daytona | Business Intelligence
         </footer>
     </div>
 
 <script>
-// --- CONFIGURACIÓN Y VARIABLES GLOBALES ---
-let loadedData = [];
-let selectedAgencies = [];
-let selectedMonths = [];
-let allKPIs = [];
-let allMonths = [];
-let singleSelectedAgency = '';
-let singleSelectedMonths = [];
-
-// API Configuration
+// --- CONFIGURACIÓN ---
 const API_KEY = "AIzaSyATBI8jMV1AtfsjhmwEwfOMYSdKmhMM5ck"; 
 const SPREADSHEET_ID = "1xzQYs3KOIINVTTvVOYSQDiuiQDUsCWwqEDoQAUvBNfQ";
-const KPI_UNIDADES_FACTURADAS = 'Unidades Facturadas'; 
-const chronologicalMonthOrder = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+const KPI_TARGET = 'Unidades Facturadas'; 
+const MONTHS_ORDER = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
-// Instancias de Gráficos
-let unidadesFacturadasLineChart = null;
-let waterfallChartInstance = null;
-let rankingChartInstance = null;
+// --- ESTADO ---
+let rawData = []; // Datos crudos
+let activeAgencies = []; // Nombres seleccionados
+let activeMonths = []; // Meses seleccionados (String)
+let chartInstances = {};
 
-// --- UTILITIES ---
-function formatNumber(value) {
-    if (value === null || value === undefined || value === 'N/A') return 'N/A';
-    const num = typeof value === 'string' ? parseFloat(value) : value;
-    if (isNaN(num)) return 'N/A';
-    return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); // Sin decimales para autos
-}
+// --- INICIO ---
+function updateClock() { document.getElementById('clock').innerText = new Date().toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'}); }
+setInterval(updateClock, 60000); updateClock();
 
-function updateClock() {
-    const now = new Date();
-    const el = document.getElementById('currentTime');
-    if(el) el.textContent = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-}
-setInterval(updateClock, 60000);
-updateClock();
-
-function toggleConfig() {
-    const panel = document.getElementById('configPanel');
-    const chevron = document.getElementById('configChevron');
-    if (panel.classList.contains('hidden')) {
-        panel.classList.remove('hidden');
-        chevron.classList.remove('fa-chevron-down');
-        chevron.classList.add('fa-chevron-up');
-    } else {
-        panel.classList.add('hidden');
-        chevron.classList.remove('fa-chevron-up');
-        chevron.classList.add('fa-chevron-down');
-    }
-}
-
-// --- CORE LOGIC: API & DATA ---
-
+// --- CARGA DE DATOS ---
 async function connectToAPI() {
-    showStatus('loading', 'Conectando con Google Sheets...');
+    uiStatus('loading', 'Conectando con Google Sheets...');
     try {
-        const metadataResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?key=${API_KEY}`);
-        if (!metadataResponse.ok) throw new Error('Error de conexión con Google');
-        
-        const metadata = await metadataResponse.json();
-        const sheets = metadata.sheets || [];
-        // Filtro simple para encontrar hojas relevantes
-        const validSheets = sheets.map(s => s.properties.title).filter(title => 
-            ['Honda', 'KIA', 'MG', 'GWM', 'Acura', 'Seat', 'Cupra', 'Mazda', 'Suzuki'].some(brand => title.includes(brand))
-        );
+        // 1. Obtener nombres de hojas
+        const metaRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?key=${API_KEY}`);
+        const meta = await metaRes.json();
+        const sheetNames = meta.sheets.map(s => s.properties.title).filter(t => !['Resumen', 'Dashboard', 'Config'].includes(t)); // Excluir hojas de sistema
 
-        if (validSheets.length === 0) throw new Error('No se encontraron hojas de agencias');
+        if (!sheetNames.length) throw new Error("No se encontraron hojas de agencias.");
 
-        const loadedAgencies = [];
-        
-        for (const sheetName of validSheets) {
-            const dataResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(sheetName + '!A:Z')}?key=${API_KEY}`);
-            const sheetData = await dataResponse.json();
-            if (sheetData.values && sheetData.values.length > 1) {
-                const processed = processRealSheetData(sheetData.values, sheetName);
-                if (processed) loadedAgencies.push(processed);
+        // 2. Obtener datos de todas las hojas
+        rawData = [];
+        for (const name of sheetNames) {
+            const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name + '!A:Z')}?key=${API_KEY}`);
+            const json = await res.json();
+            if (json.values && json.values.length > 1) {
+                const processed = parseSheet(json.values, name);
+                if (processed) rawData.push(processed);
             }
         }
-
-        if (loadedAgencies.length > 0) {
-            loadedData = loadedAgencies;
-            displayResults(loadedData);
-            showStatus('success', `${loadedAgencies.length} agencias cargadas.`);
-        } else {
-            throw new Error('Datos vacíos o formato incorrecto');
-        }
-
-    } catch (error) {
-        console.error(error);
-        showStatus('error', 'Error API: Carga la demo por favor.');
-    }
-}
-
-function processRealSheetData(values, agencyName) {
-    try {
-        const headers = values[0];
-        let kpiIndex = headers.findIndex(h => h.toLowerCase().includes('kpi') || h.toLowerCase().includes('concepto'));
-        if (kpiIndex === -1) kpiIndex = 0;
-
-        const monthColumns = [];
-        headers.forEach((h, i) => {
-            if (i !== kpiIndex && typeof h === 'string') {
-                const match = chronologicalMonthOrder.find(m => h.toLowerCase().startsWith(m.toLowerCase().substring(0,3)));
-                if (match) monthColumns.push({ index: i, month: match });
-            }
-        });
-
-        const kpis = [];
-        const availableMonths = monthColumns.map(m => m.month).sort((a,b) => chronologicalMonthOrder.indexOf(a) - chronologicalMonthOrder.indexOf(b));
-
-        values.slice(1).forEach(row => {
-            const kpiName = row[kpiIndex];
-            if (kpiName) {
-                const kpiObj = { name: kpiName.trim() };
-                monthColumns.forEach(col => {
-                    let val = row[col.index];
-                    if (typeof val === 'string') val = parseFloat(val.replace(/,/g, '').replace(/[^0-9.-]+/g,""));
-                    kpiObj[col.month] = isNaN(val) ? 0 : val;
-                });
-                kpis.push(kpiObj);
-            }
-        });
-
-        return { agency: agencyName, kpis: kpis, months: availableMonths };
+        
+        initDashboard();
+        uiStatus('success', `Datos cargados: ${rawData.length} agencias.`);
     } catch (e) {
-        console.error('Error parsing sheet', agencyName, e);
-        return null;
+        console.error(e);
+        uiStatus('error', 'Error en conexión. Intenta cargar la Demo.');
     }
 }
 
 function loadDemo() {
-    showStatus('loading', 'Generando simulación...');
-    // Datos simulados para demostración
-    const agencies = ['Honda Cuajimalpa', 'Honda Interlomas', 'KIA Interlomas', 'MG Iztapalapa', 'GWM Morelos', 'Acura Interlomas'];
-    const kpis = [KPI_UNIDADES_FACTURADAS, 'Ventas Brutas', 'Leads Digitales', 'Test Drives', 'Solicitudes Crédito'];
-    const months = chronologicalMonthOrder.slice(0, 11); // Hasta Noviembre
+    uiStatus('loading', 'Generando datos demo...');
+    const agencies = ['Honda Cuajimalpa', 'KIA Interlomas', 'MG Iztapalapa', 'GWM Morelos', 'Acura Interlomas', 'Mazda Pasión'];
+    const kpis = [KPI_TARGET, 'Ventas Brutas', 'Leads Digitales', 'Test Drives', 'Solicitudes Crédito', 'Tasa Aprobación %'];
+    
+    rawData = agencies.map(name => ({
+        agency: name,
+        kpis: kpis.map(k => {
+            const row = { name: k };
+            MONTHS_ORDER.forEach(m => row[m] = Math.floor(Math.random() * (k.includes('%') ? 100 : 200)));
+            return row;
+        })
+    }));
+    
+    initDashboard();
+    uiStatus('success', 'Modo Demo Activo');
+}
 
-    const data = agencies.map(agency => {
-        const agencyKpis = kpis.map(kpiName => {
-            const kpiObj = { name: kpiName };
-            let base = kpiName === KPI_UNIDADES_FACTURADAS ? 50 : 200;
-            months.forEach((m, i) => {
-                // Simular estacionalidad y crecimiento
-                let factor = 1 + (Math.random() * 0.4 - 0.2); 
-                if (i > 6) factor += 0.1; // Mejor cierre de año
-                kpiObj[m] = Math.round(base * factor);
+function parseSheet(values, agencyName) {
+    try {
+        const headers = values[0].map(h => h.trim());
+        let kpiIdx = headers.findIndex(h => h.toLowerCase().match(/kpi|concepto|indicador/));
+        if (kpiIdx === -1) kpiIdx = 0;
+
+        // Detectar columnas de meses
+        const mapMonths = {};
+        headers.forEach((h, i) => {
+            const match = MONTHS_ORDER.find(m => h.toLowerCase().startsWith(m.toLowerCase().substr(0,3)));
+            if (match) mapMonths[match] = i;
+        });
+
+        const kpis = values.slice(1).map(row => {
+            const obj = { name: row[kpiIdx] };
+            if (!obj.name) return null;
+            Object.keys(mapMonths).forEach(m => {
+                let val = row[mapMonths[m]];
+                if (typeof val === 'string') val = parseFloat(val.replace(/[^0-9.-]+/g,""));
+                obj[m] = isNaN(val) ? 0 : val;
             });
-            return kpiObj;
-        });
-        return { agency: agency, kpis: agencyKpis, months: months };
-    });
+            return obj;
+        }).filter(k => k);
 
-    loadedData = data;
-    displayResults(data);
-    showStatus('success', 'Demo cargada exitosamente.');
+        return { agency: agencyName, kpis };
+    } catch (e) { return null; }
 }
 
-function displayResults(data) {
-    document.getElementById('results').classList.remove('hidden');
-    allKPIs = [...new Set(data.flatMap(d => d.kpis.map(k => k.name)))];
-    allMonths = [...new Set(data.flatMap(d => d.months))].sort((a,b) => chronologicalMonthOrder.indexOf(a) - chronologicalMonthOrder.indexOf(b));
+// --- CORE DEL DASHBOARD ---
+
+function initDashboard() {
+    document.getElementById('dashboardContent').classList.remove('hidden');
     
-    // Selectores
-    const agencySelect = document.getElementById('singleAgencySelect');
-    agencySelect.innerHTML = '<option value="">Seleccionar...</option>';
-    data.map(d => d.agency).sort().forEach(a => {
-        agencySelect.innerHTML += `<option value="${a}">${a}</option>`;
-    });
+    // 1. Poblar Filtros Globales
+    activeAgencies = rawData.map(d => d.agency).sort();
+    activeMonths = [...MONTHS_ORDER]; // Default todos
 
-    // Filtros Iniciales (Seleccionar todos por defecto)
-    selectedAgencies = data.map(d => d.agency);
-    selectedMonths = [...allMonths];
+    renderChecks('agencyChecks', activeAgencies, 'agency');
+    renderChecks('monthChecks', MONTHS_ORDER, 'month');
     
-    refreshFiltersUI();
-    updateAnalysis(); // Generar reporte inicial
+    // 2. Poblar Selectores Específicos
+    const monthSel = document.getElementById('compareMonthSelect');
+    monthSel.innerHTML = MONTHS_ORDER.map(m => `<option value="${m}">${m}</option>`).join('');
+    // Seleccionar el mes actual o el último disponible por defecto
+    monthSel.value = MONTHS_ORDER[new Date().getMonth()] || 'Enero'; 
+
+    const agencySel = document.getElementById('historyAgencySelect');
+    agencySel.innerHTML = activeAgencies.map(a => `<option value="${a}">${a}</option>`).join('');
+
+    updateAllTables();
 }
 
-function refreshFiltersUI() {
-    populateCheckboxes('agencyCheckboxes', loadedData.map(d => d.agency).sort(), selectedAgencies, 'agency');
-    populateCheckboxes('monthCheckboxes', allMonths, selectedMonths, 'month');
-    updateCounts();
-}
+function updateAllTables() {
+    // Leer estado de checkboxes
+    activeAgencies = getCheckedValues('agency');
+    activeMonths = getCheckedValues('month').sort((a,b) => MONTHS_ORDER.indexOf(a) - MONTHS_ORDER.indexOf(b));
 
-function populateCheckboxes(id, items, selected, type) {
-    const container = document.getElementById(id);
-    container.innerHTML = '';
-    items.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'flex items-center hover:bg-white/5 p-1 rounded';
-        div.innerHTML = `
-            <input type="checkbox" id="${type}-${item}" value="${item}" class="rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-600" ${selected.includes(item) ? 'checked' : ''}>
-            <label for="${type}-${item}" class="ml-2 text-sm text-gray-200 cursor-pointer w-full">${item}</label>
-        `;
-        div.querySelector('input').addEventListener('change', (e) => {
-            if (e.target.checked) selected.push(item);
-            else { const idx = selected.indexOf(item); if (idx > -1) selected.splice(idx, 1); }
-            updateCounts();
-        });
-        container.appendChild(div);
-    });
-}
-
-function updateCounts() {
-    document.getElementById('agencyCount').innerText = selectedAgencies.length;
-    document.getElementById('monthCount').innerText = selectedMonths.length;
-}
-
-function selectAllAgencies() { selectedAgencies = loadedData.map(d => d.agency); refreshFiltersUI(); }
-function deselectAllAgencies() { selectedAgencies = []; refreshFiltersUI(); }
-
-// --- MAIN ANALYSIS & CHARTS ---
-
-function updateAnalysis() {
-    if (selectedAgencies.length === 0 || selectedMonths.length === 0) {
-        showStatus('error', 'Selecciona datos para el reporte.');
+    if (activeAgencies.length === 0 || activeMonths.length === 0) {
+        alert("Selecciona al menos una agencia y un mes en los filtros globales.");
         return;
     }
 
-    // Ordenar cronológicamente meses seleccionados
-    const sortedMonths = selectedMonths.sort((a,b) => chronologicalMonthOrder.indexOf(a) - chronologicalMonthOrder.indexOf(b));
-    
-    // 1. Generate Main Table
-    generateMainTable(sortedMonths);
-
-    // 2. Generate Waterfall Chart (ECharts)
-    updateWaterfallChart(sortedMonths);
-
-    // 3. Generate Ranking Chart (ECharts)
-    updateRankingChart(sortedMonths);
-
-    // 4. Generate AI Narrative
-    generateAINarrative(sortedMonths);
-
-    // Update Top Stats
-    document.getElementById('totalAgencies').innerText = selectedAgencies.length;
-    document.getElementById('totalPeriods').innerText = sortedMonths.length;
-    
-    // Ocultar configuración tras generar
-    document.getElementById('configPanel').classList.add('hidden');
-    document.getElementById('configChevron').className = 'fas fa-chevron-down text-white';
-    document.getElementById('advancedChartsContainer').classList.remove('hidden');
+    renderTable1_Global();
+    updateMonthlyComparison(); // Refresca tabla 2
+    updateAgencyHistory(); // Refresca tabla 3
 }
 
-function generateMainTable(months) {
-    const thead = document.getElementById('tableHeader');
-    const tbody = document.getElementById('tableBody');
+// =========================================================
+// TABLA 1: GLOBAL ACUMULADO (La Matriz)
+// =========================================================
+function renderTable1_Global() {
+    const thead = document.getElementById('globalThead');
+    const tbody = document.getElementById('globalTbody');
     thead.innerHTML = ''; tbody.innerHTML = '';
 
     // Headers
-    const headers = ['KPI', ...selectedAgencies.sort(), 'Total Grupo', 'Tendencia'];
-    headers.forEach(h => {
-        const th = document.createElement('th');
-        th.innerText = h;
-        if(h === 'Total Grupo') th.classList.add('bg-blue-900/50');
-        thead.appendChild(th);
+    let htmlHead = `<tr><th>KPI</th>`;
+    activeAgencies.forEach(a => htmlHead += `<th>${a}</th>`);
+    htmlHead += `<th class="bg-blue-900/50">Total</th><th class="bg-blue-900/50">Promedio</th><th>Tendencia</th></tr>`;
+    thead.innerHTML = htmlHead;
+
+    // Obtener lista única de KPIs
+    const allKpis = [...new Set(rawData.flatMap(d => d.kpis.map(k => k.name)))];
+
+    allKpis.forEach(kpiName => {
+        let tr = document.createElement('tr');
+        tr.innerHTML = `<td>${kpiName}</td>`;
+        
+        let rowTotal = 0;
+        let validAgencies = 0;
+        let startVal = 0; // Para tendencia (primer mes seleccionado)
+        let endVal = 0;   // Para tendencia (último mes seleccionado)
+
+        const valsForHighlight = [];
+
+        activeAgencies.forEach((ag, idx) => {
+            const data = rawData.find(d => d.agency === ag);
+            const kpiObj = data?.kpis.find(k => k.name === kpiName);
+            
+            // Suma de los meses SELECCIONADOS en el filtro global
+            let sum = 0;
+            if (kpiObj) {
+                activeMonths.forEach(m => sum += (kpiObj[m] || 0));
+                
+                // Datos para tendencia global del grupo
+                startVal += (kpiObj[activeMonths[0]] || 0);
+                endVal += (kpiObj[activeMonths[activeMonths.length-1]] || 0);
+            }
+            
+            rowTotal += sum;
+            validAgencies++;
+            valsForHighlight.push(sum);
+
+            tr.innerHTML += `<td>${fmt(sum)}</td>`;
+        });
+
+        // Highlight Highest
+        const maxVal = Math.max(...valsForHighlight);
+        Array.from(tr.children).slice(1).forEach((td, i) => {
+            if (parseFloat(td.innerText.replace(/,/g,'')) === maxVal && maxVal > 0) td.classList.add('highest-val');
+        });
+
+        // Totales y Promedios
+        const avg = validAgencies ? rowTotal / validAgencies : 0;
+        tr.innerHTML += `<td class="font-bold bg-blue-900/20">${fmt(rowTotal)}</td>`;
+        tr.innerHTML += `<td class="font-bold bg-blue-900/20">${fmt(avg)}</td>`;
+
+        // Tendencia (Comparando Mes Inicial vs Mes Final de la selección global)
+        const trend = startVal > 0 ? ((endVal - startVal) / startVal) * 100 : 0;
+        const trendIcon = trend > 0 ? '↑' : (trend < 0 ? '↓' : '-');
+        const trendClass = trend > 0 ? 'trend-up' : (trend < 0 ? 'trend-down' : 'trend-neutral');
+        tr.innerHTML += `<td class="${trendClass}">${trendIcon} ${Math.abs(trend).toFixed(1)}%</td>`;
+
+        tbody.appendChild(tr);
     });
 
-    allKPIs.forEach(kpi => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td class="text-left font-medium text-white">${kpi}</td>`;
-        
+    renderWaterfall();
+}
+
+function renderWaterfall() {
+    // Calcula totales del grupo mes a mes (basado en filtros)
+    const chartData = activeMonths.map(m => {
+        let sum = 0;
+        activeAgencies.forEach(a => {
+            const d = rawData.find(data => data.agency === a);
+            const k = d?.kpis.find(kpi => kpi.name === KPI_TARGET);
+            if(k) sum += (k[m] || 0);
+        });
+        return sum;
+    });
+
+    // Lógica ECharts Waterfall simple
+    // (Simplificada para visualización directa de acumulado vs variación)
+    const dom = document.getElementById('waterfallChart');
+    if (chartInstances.waterfall) chartInstances.waterfall.dispose();
+    chartInstances.waterfall = echarts.init(dom, 'dark');
+
+    const option = {
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'axis' },
+        grid: { left: 0, right: 0, top: 10, bottom: 20, containLabel:true },
+        xAxis: { type: 'category', data: activeMonths },
+        yAxis: { type: 'value', splitLine: { show: false } },
+        series: [{
+            type: 'bar',
+            data: chartData,
+            itemStyle: { color: '#3B82F6' },
+            label: { show: true, position: 'top', color: '#fff' }
+        }]
+    };
+    chartInstances.waterfall.setOption(option);
+}
+
+
+// =========================================================
+// TABLA 2: COMPARATIVO MENSUAL (Un Mes Específico)
+// =========================================================
+function updateMonthlyComparison() {
+    const selectedMonth = document.getElementById('compareMonthSelect').value;
+    const thead = document.getElementById('monthlyThead');
+    const tbody = document.getElementById('monthlyTbody');
+    thead.innerHTML = ''; tbody.innerHTML = '';
+
+    // Headers
+    let htmlHead = `<tr><th>KPI (${selectedMonth})</th>`;
+    activeAgencies.forEach(a => htmlHead += `<th>${a}</th>`);
+    htmlHead += `<th class="avg-col">Promedio Mes</th><th class="bg-purple-900/50">Ganador</th></tr>`;
+    thead.innerHTML = htmlHead;
+
+    const allKpis = [...new Set(rawData.flatMap(d => d.kpis.map(k => k.name)))];
+
+    allKpis.forEach(kpiName => {
+        let tr = document.createElement('tr');
+        tr.innerHTML = `<td>${kpiName}</td>`;
+
         let rowSum = 0;
-        let rowCounts = 0;
+        let maxVal = -Infinity;
+        let winnerName = '-';
+        const vals = [];
 
-        selectedAgencies.forEach(agency => {
-            const data = loadedData.find(d => d.agency === agency);
-            const kpiData = data.kpis.find(k => k.name === kpi);
+        activeAgencies.forEach(ag => {
+            const data = rawData.find(d => d.agency === ag);
+            const kpiObj = data?.kpis.find(k => k.name === kpiName);
+            const val = kpiObj ? (kpiObj[selectedMonth] || 0) : 0;
             
-            let val = 0;
-            if (kpiData) {
-                // Sum or Avg depending on logic (Sum for now)
-                months.forEach(m => val += (kpiData[m] || 0));
-            }
             rowSum += val;
+            vals.push(val);
             
-            const td = document.createElement('td');
-            td.innerText = formatNumber(val);
-            tr.appendChild(td);
+            if (val > maxVal) { maxVal = val; winnerName = ag; }
+
+            tr.innerHTML += `<td>${fmt(val)}</td>`;
         });
 
-        // Total Grupo
-        const tdTotal = document.createElement('td');
-        tdTotal.innerText = formatNumber(rowSum);
-        tdTotal.className = 'bg-blue-900/20 font-bold';
-        tr.appendChild(tdTotal);
-
-        // Tendencia (Simple slope comparison: First selected month vs Last selected month group total)
-        // This calculates if the group grew from start to end of period
-        let startVal = 0, endVal = 0;
-        selectedAgencies.forEach(a => {
-            const d = loadedData.find(da => da.agency === a).kpis.find(k => k.name === kpi);
-            if(d) {
-                startVal += (d[months[0]] || 0);
-                endVal += (d[months[months.length-1]] || 0);
-            }
+        // Highlight
+        Array.from(tr.children).slice(1).forEach((td, i) => {
+            if (vals[i] === maxVal && maxVal > 0) td.classList.add('highest-val');
         });
 
-        const tdTrend = document.createElement('td');
-        if (startVal > 0) {
-            const change = ((endVal - startVal) / startVal) * 100;
-            tdTrend.innerHTML = `<span class="${change >= 0 ? 'text-green-400' : 'text-red-400'} font-bold">${change > 0 ? '+' : ''}${change.toFixed(1)}%</span>`;
-        } else {
-            tdTrend.innerText = '-';
-        }
-        tr.appendChild(tdTrend);
+        // Promedio del Mes
+        const avg = activeAgencies.length ? rowSum / activeAgencies.length : 0;
+        tr.innerHTML += `<td class="avg-col font-bold">${fmt(avg)}</td>`;
+        
+        // Ganador
+        tr.innerHTML += `<td class="text-purple-300 font-bold">${maxVal > 0 ? winnerName : '-'}</td>`;
 
         tbody.appendChild(tr);
     });
 }
 
-// --- ECHARTS: WATERFALL CHART (EL EXPERTO) ---
-function updateWaterfallChart(months) {
-    const chartDom = document.getElementById('waterfallChart');
-    if (waterfallChartInstance) waterfallChartInstance.dispose();
-    waterfallChartInstance = echarts.init(chartDom, 'dark');
+// =========================================================
+// TABLA 3: HISTÓRICO AGENCIA (Mes a Mes) - FIX DICIEMBRE
+// =========================================================
+function updateAgencyHistory() {
+    const selectedAgency = document.getElementById('historyAgencySelect').value;
+    const thead = document.getElementById('historyThead');
+    const tbody = document.getElementById('historyTbody');
+    thead.innerHTML = ''; tbody.innerHTML = '';
 
-    // Preparar datos: Total del Grupo mes a mes
-    const monthlyTotals = months.map(m => {
+    // Headers: Solo los meses ACTIVOS en el filtro global
+    let htmlHead = `<tr><th>KPI</th>`;
+    activeMonths.forEach(m => htmlHead += `<th>${m}</th>`);
+    htmlHead += `<th class="avg-col">Promedio</th><th>Tendencia</th></tr>`;
+    thead.innerHTML = htmlHead;
+
+    const data = rawData.find(d => d.agency === selectedAgency);
+    if (!data) return;
+
+    // Chart Data prep
+    const chartLabels = activeMonths;
+    const chartValues = [];
+
+    data.kpis.forEach(k => {
+        let tr = document.createElement('tr');
+        tr.innerHTML = `<td>${k.name}</td>`;
+        
         let sum = 0;
-        selectedAgencies.forEach(a => {
-            const data = loadedData.find(d => d.agency === a);
-            const kpi = data.kpis.find(k => k.name === KPI_UNIDADES_FACTURADAS);
-            if(kpi) sum += (kpi[m] || 0);
+        let start = k[activeMonths[0]] || 0;
+        let end = k[activeMonths[activeMonths.length-1]] || 0;
+
+        activeMonths.forEach(m => {
+            const val = k[m] || 0;
+            sum += val;
+            tr.innerHTML += `<td>${fmt(val)}</td>`;
+            
+            if (k.name === KPI_TARGET) chartValues.push(val); // Para el gráfico solo este KPI
         });
-        return sum;
+
+        // Promedio
+        const avg = sum / activeMonths.length;
+        tr.innerHTML += `<td class="avg-col font-bold">${fmt(avg)}</td>`;
+
+        // Tendencia
+        const trend = start > 0 ? ((end - start) / start) * 100 : 0;
+        const trendClass = trend > 0 ? 'trend-up' : (trend < 0 ? 'trend-down' : 'trend-neutral');
+        tr.innerHTML += `<td class="${trendClass}">${trend > 0 ? '↑' : (trend < 0 ? '↓' : '-')} ${Math.abs(trend).toFixed(1)}%</td>`;
+
+        tbody.appendChild(tr);
     });
 
-    // Lógica Waterfall: Calcular deltas
-    const data = [];
-    const help = []; // Barra transparente base
-    let currentPos = 0;
-
-    months.forEach((m, i) => {
-        if (i === 0) {
-            // Primer mes es base
-            help.push(0);
-            data.push(monthlyTotals[i]);
-            currentPos = monthlyTotals[i];
-        } else {
-            const diff = monthlyTotals[i] - monthlyTotals[i-1];
-            if (diff >= 0) {
-                help.push(currentPos);
-                data.push(diff);
-                currentPos += diff;
-            } else {
-                currentPos += diff; // diff es negativo
-                help.push(currentPos);
-                data.push(Math.abs(diff));
-            }
-        }
-    });
-
-    // Agregar total final como última columna
-    const labels = [...months];
+    // Render Mini Chart
+    const ctx = document.getElementById('historyChart').getContext('2d');
+    if (chartInstances.history) chartInstances.history.destroy();
     
-    // Colores dinámicos
-    const itemStyle = {
-        color: (params) => {
-            const idx = params.dataIndex;
-            if (idx === 0) return '#5470C6'; // Azul inicio
-            const val = monthlyTotals[idx] - monthlyTotals[idx-1];
-            return val >= 0 ? '#10B981' : '#EF4444'; // Verde sube, Rojo baja
-        }
-    };
+    // Si no hay valores (ej. kpi no encontrado) llenamos con ceros
+    if (chartValues.length === 0) activeMonths.forEach(() => chartValues.push(0));
 
-    const option = {
-        backgroundColor: 'transparent',
-        tooltip: {
-            trigger: 'axis',
-            axisPointer: { type: 'shadow' },
-            formatter: function (params) {
-                const tar = params[1]; // La barra visible
-                const monthName = params[0].name;
-                const idx = params[0].dataIndex;
-                const total = monthlyTotals[idx];
-                return `${monthName}<br/>Variación: ${tar.value}<br/>Total Grupo: ${total}`;
-            }
-        },
-        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-        xAxis: { type: 'category', splitLine: { show: false }, data: labels },
-        yAxis: { type: 'value' },
-        series: [
-            {
-                name: 'Base',
-                type: 'bar',
-                stack: 'Total',
-                itemStyle: { borderColor: 'transparent', color: 'transparent' },
-                emphasis: { itemStyle: { borderColor: 'transparent', color: 'transparent' } },
-                data: help
-            },
-            {
-                name: 'Variación',
-                type: 'bar',
-                stack: 'Total',
-                label: { show: true, position: 'top' },
-                itemStyle: itemStyle,
-                data: data
-            }
-        ]
-    };
-
-    waterfallChartInstance.setOption(option);
-    
-    // Actualizar KPI total en tarjeta
-    const totalPeriodVolume = monthlyTotals.reduce((a,b) => a + b, 0); // Ojo: esto suma todos los totales mensuales, quizás queremos el último acumulado o la suma de facturación.
-    // Para unidades facturadas en un periodo, es la suma de todos los meses.
-    document.getElementById('totalVolumeDisplay').innerText = formatNumber(totalPeriodVolume);
-}
-
-// --- ECHARTS: RANKING CHART ---
-function updateRankingChart(months) {
-    const chartDom = document.getElementById('rankingChart');
-    if (rankingChartInstance) rankingChartInstance.dispose();
-    rankingChartInstance = echarts.init(chartDom, 'dark');
-
-    // Calcular total por agencia en el periodo seleccionado
-    const rankingData = selectedAgencies.map(a => {
-        const data = loadedData.find(d => d.agency === a);
-        const kpi = data.kpis.find(k => k.name === KPI_UNIDADES_FACTURADAS);
-        let sum = 0;
-        if(kpi) months.forEach(m => sum += (kpi[m] || 0));
-        return { name: a, value: sum };
-    }).sort((a,b) => a.value - b.value); // Orden ascendente para gráfico horizontal
-
-    const option = {
-        backgroundColor: 'transparent',
-        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-        xAxis: { type: 'value', splitLine: { show: false } },
-        yAxis: { type: 'category', data: rankingData.map(d => d.name) },
-        series: [
-            {
-                name: 'Unidades',
-                type: 'bar',
-                data: rankingData.map(d => d.value),
-                itemStyle: {
-                    color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-                        { offset: 0, color: '#F59E0B' },
-                        { offset: 1, color: '#EF4444' }
-                    ])
-                },
-                label: { show: true, position: 'right', color: '#fff' }
-            }
-        ]
-    };
-    rankingChartInstance.setOption(option);
-}
-
-// --- AI NARRATIVE GENERATOR (MOCKUP INTELIGENTE) ---
-function generateAINarrative(months) {
-    const container = document.getElementById('aiNarrativeText');
-    container.innerHTML = '';
-    
-    // 1. Análisis básico de datos para construir el prompt/texto
-    let totalVol = 0;
-    let bestAgency = { name: '', val: 0 };
-    let worstAgency = { name: '', val: Infinity };
-    
-    selectedAgencies.forEach(a => {
-        const data = loadedData.find(d => d.agency === a);
-        const kpi = data.kpis.find(k => k.name === KPI_UNIDADES_FACTURADAS);
-        let sum = 0;
-        if(kpi) months.forEach(m => sum += (kpi[m] || 0));
-        totalVol += sum;
-        if(sum > bestAgency.val) bestAgency = { name: a, val: sum };
-        if(sum < worstAgency.val) worstAgency = { name: a, val: sum };
-    });
-
-    // 2. Construcción del Texto (Narrativa)
-    // NOTA: Aquí es donde conectarías con Vercel AI SDK: 
-    // const response = await fetch('/api/generate-summary', { body: JSON.stringify({data}) });
-    
-    const narrative = `Análisis de Cierre: El Grupo Daytona consolidó ${formatNumber(totalVol)} unidades facturadas en el periodo seleccionado (${months[0]} - ${months[months.length-1]}). 
-    La agencia destacada es ${bestAgency.name} aportando el ${Math.round((bestAgency.val/totalVol)*100)}% del volumen total. 
-    Se observa una oportunidad de mejora en ${worstAgency.name}, que requiere revisión de inventario y leads para el próximo ciclo. 
-    Tendencia general: ${totalVol > 1000 ? 'Positiva y Estable' : 'En proceso de consolidación'}.`;
-
-    // 3. Efecto de "Escribiendo"
-    let i = 0;
-    const speed = 20; 
-    function typeWriter() {
-        if (i < narrative.length) {
-            container.innerHTML += narrative.charAt(i);
-            i++;
-            setTimeout(typeWriter, speed);
-        } else {
-            container.classList.remove('typing-cursor');
-        }
-    }
-    typeWriter();
-}
-
-// --- SINGLE AGENCY LOGIC (EXISTENTE, PEQUEÑOS AJUSTES VISUALES) ---
-function updateSingleAgencyMonths() {
-    singleSelectedAgency = document.getElementById('singleAgencySelect').value;
-    const container = document.getElementById('singleMonthCheckboxes');
-    container.innerHTML = '';
-    
-    if(!singleSelectedAgency) return;
-    
-    const data = loadedData.find(d => d.agency === singleSelectedAgency);
-    if(data) {
-        // Generar checkboxes
-        data.months.sort((a,b) => chronologicalMonthOrder.indexOf(a) - chronologicalMonthOrder.indexOf(b))
-            .forEach(m => {
-                const div = document.createElement('div');
-                div.innerHTML = `<input type="checkbox" checked value="${m}" class="mr-1"> ${m}`;
-                div.className = 'text-white text-sm flex items-center bg-white/10 px-2 py-1 rounded';
-                div.querySelector('input').addEventListener('change', (e) => {
-                     // Lógica simple para demo, en producción usar arrays globales
-                });
-                container.appendChild(div);
-            });
-        singleSelectedMonths = data.months; // Auto-select all
-        document.getElementById('singleMonthCount').innerText = singleSelectedMonths.length;
-    }
-}
-
-function generateSingleAgencyTable() {
-    // Reutilizar lógica existente visualmente
-    const tableDiv = document.getElementById('singleAgencyTableContainer');
-    tableDiv.classList.remove('hidden');
-    
-    if (!singleSelectedAgency) return;
-    
-    const data = loadedData.find(d => d.agency === singleSelectedAgency);
-    const kpi = data.kpis.find(k => k.name === KPI_UNIDADES_FACTURADAS);
-    
-    // Render Line Chart (Chart.js)
-    const ctx = document.getElementById('unidadesFacturadasLineChart').getContext('2d');
-    if (unidadesFacturadasLineChart) unidadesFacturadasLineChart.destroy();
-    
-    const values = singleSelectedMonths.map(m => kpi ? (kpi[m] || 0) : 0);
-    
-    unidadesFacturadasLineChart = new Chart(ctx, {
+    chartInstances.history = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: singleSelectedMonths,
+            labels: chartLabels,
             datasets: [{
                 label: 'Unidades',
-                data: values,
-                borderColor: '#60A5FA',
-                backgroundColor: 'rgba(96, 165, 250, 0.2)',
+                data: chartValues,
+                borderColor: '#F97316',
+                backgroundColor: 'rgba(249, 115, 22, 0.1)',
                 fill: true,
                 tension: 0.4
             }]
         },
         options: {
-            responsive: true,
             plugins: { legend: { display: false } },
-            scales: {
-                y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#aaa' } },
-                x: { grid: { display: false }, ticks: { color: '#aaa' } }
-            }
+            scales: { x: { display: false }, y: { display: false } }
         }
     });
-
-    // Populate table (Simplified for this full code replacement)
-    const thead = document.getElementById('singleTableHeader');
-    const tbody = document.getElementById('singleTableBody');
-    thead.innerHTML = `<th>KPI</th>${singleSelectedMonths.map(m => `<th>${m}</th>`).join('')}`;
-    tbody.innerHTML = '';
-    
-    data.kpis.forEach(k => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td class="text-left font-medium">${k.name}</td>` + 
-                       singleSelectedMonths.map(m => `<td>${formatNumber(k[m])}</td>`).join('');
-        tbody.appendChild(tr);
-    });
 }
 
-function exportMainTableToExcel() {
-    const table = document.getElementById('tableBody');
-    if(table.rows.length === 0) return alert('Genera el reporte primero');
-    // Implementación simplificada usando la librería ya cargada
-    const wb = XLSX.utils.table_to_book(document.querySelector("table"), {sheet: "KPIs"});
-    XLSX.writeFile(wb, "Reporte_Daytona_AutosNuevos.xlsx");
-}
 
-function showStatus(type, msg) {
+// --- UTILITIES ---
+function fmt(n) { return n.toLocaleString('en-US', {maximumFractionDigits: 1}); }
+function uiStatus(type, msg) {
     const el = document.getElementById('status');
-    const txt = document.getElementById('statusText');
-    const icon = document.getElementById('statusIcon');
     el.classList.remove('hidden');
-    txt.innerText = msg;
-    // Reset icons logic (simplified)
-    icon.className = type === 'loading' ? 'fas fa-spinner fa-spin text-blue-500' : 
-                     type === 'success' ? 'fas fa-check text-green-500' : 'fas fa-exclamation text-red-500';
+    el.innerHTML = type === 'loading' ? `<i class="fas fa-spinner fa-spin mr-2"></i>${msg}` : 
+                   type === 'error' ? `<i class="fas fa-exclamation-triangle mr-2"></i>${msg}` : 
+                   `<i class="fas fa-check mr-2"></i>${msg}`;
+}
+function renderChecks(id, items, type) {
+    const c = document.getElementById(id);
+    c.innerHTML = items.map(i => `
+        <label class="flex items-center space-x-2 cursor-pointer hover:bg-white/5 p-1 rounded">
+            <input type="checkbox" value="${i}" checked class="form-checkbox text-blue-500 rounded bg-gray-700 border-none" data-type="${type}">
+            <span>${i}</span>
+        </label>
+    `).join('');
+}
+function getCheckedValues(type) {
+    return Array.from(document.querySelectorAll(`input[data-type="${type}"]:checked`)).map(cb => cb.value);
+}
+function toggleAll(type, state) {
+    document.querySelectorAll(`input[data-type="${type}"]`).forEach(cb => cb.checked = state);
+}
+function exportTable(id) {
+    const wb = XLSX.utils.table_to_book(document.getElementById(id));
+    XLSX.writeFile(wb, `Daytona_Export_${id}.xlsx`);
 }
 
 </script>
