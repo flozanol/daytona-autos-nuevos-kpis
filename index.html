@@ -18,12 +18,17 @@
         .btn-primary { background: linear-gradient(135deg, #3B82F6, #2563EB); transition: 0.3s; }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); }
         
+        /* AI Card Styles */
+        .ai-card { background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%); border: 1px solid rgba(139, 92, 246, 0.3); }
+        .typing-cursor::after { content: '|'; animation: blink 1s step-start infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
         /* Tablas */
         table { width: 100%; border-collapse: separate; border-spacing: 0; }
-        th, td { border: 1px solid rgba(255,255,255,0.1); padding: 10px; text-align: center; white-space: nowrap; font-size: 0.8rem; color: #e2e8f0; }
-        th { background: rgba(15, 23, 42, 0.95); position: sticky; top: 0; z-index: 20; color: #93c5fd; }
+        th, td { border: 1px solid rgba(255,255,255,0.1); padding: 12px 15px; text-align: center; white-space: nowrap; font-size: 0.85rem; color: #e2e8f0; }
+        th { background: rgba(15, 23, 42, 0.95); position: sticky; top: 0; z-index: 20; color: #93c5fd; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
         /* Primera columna fija */
-        td:first-child, th:first-child { position: sticky; left: 0; background: rgba(15, 23, 42, 0.95); z-index: 15; text-align: left; font-weight: 600; border-right: 2px solid rgba(255,255,255,0.1); }
+        td:first-child, th:first-child { position: sticky; left: 0; background: rgba(15, 23, 42, 0.95); z-index: 15; text-align: left; font-weight: 700; border-right: 2px solid rgba(255,255,255,0.1); }
         th:first-child { z-index: 25; }
         
         /* Semáforos y Utilidades */
@@ -70,13 +75,34 @@
 
         <div id="dashboardContent" class="hidden space-y-12">
 
+            <div class="glass-effect ai-card rounded-2xl p-6 transform transition-all hover:scale-[1.01] shadow-2xl shadow-indigo-500/10">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                        <i class="fas fa-robot text-white text-xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-lg font-bold text-white flex items-center">
+                                Daytona AI Insights
+                                <span class="ml-2 text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/30 font-mono">BETA</span>
+                            </h3>
+                            <span class="text-xs text-gray-400"><i class="fas fa-bolt text-yellow-500 mr-1"></i>Análisis en tiempo real</span>
+                        </div>
+                        <div class="bg-black/30 rounded-xl p-4 border border-white/5 min-h-[60px]">
+                            <p id="aiNarrativeText" class="text-gray-200 text-sm leading-relaxed font-mono typing-cursor">
+                                Analizando datos de ventas...
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="glass-effect p-6 rounded-2xl">
                 <div class="flex justify-between items-center mb-4 cursor-pointer" onclick="document.getElementById('filtersPanel').classList.toggle('hidden')">
                     <h3 class="text-lg font-semibold flex items-center gap-2"><i class="fas fa-filter text-blue-400"></i> Filtros Globales</h3>
                     <i class="fas fa-chevron-down text-gray-400"></i>
                 </div>
-                <div id="filtersPanel" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
+                <div id="filtersPanel" class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden"> <div>
                         <label class="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2 block">Agencias</label>
                         <div class="flex gap-2 mb-2">
                             <button onclick="toggleAll('agency', true)" class="text-xs text-green-400 hover:underline">Todas</button>
@@ -101,17 +127,20 @@
                     <span class="bg-blue-500 w-1 h-8 rounded-full"></span>
                     <h3 class="text-2xl font-bold">1. Resumen Global (Acumulado)</h3>
                 </div>
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                    <div class="glass-effect p-4 rounded-2xl lg:col-span-1">
-                        <h4 class="text-sm text-gray-400 mb-2">Variación Mensual Grupo</h4>
-                        <div id="waterfallChart" style="height: 300px;"></div>
+                
+                <div class="flex flex-col gap-6">
+                    
+                    <div class="glass-effect p-6 rounded-2xl">
+                        <h4 class="text-sm font-bold text-gray-400 mb-4 uppercase tracking-wider">Variación Mensual Total Grupo</h4>
+                        <div id="waterfallChart" style="height: 350px; width: 100%;"></div>
                     </div>
-                    <div class="glass-effect p-4 rounded-2xl lg:col-span-2 overflow-hidden flex flex-col">
-                        <div class="flex justify-between mb-2">
-                            <h4 class="text-sm text-gray-400">Matriz de KPIs Acumulados</h4>
-                            <button onclick="exportTable('globalTable')" class="text-xs text-green-400 hover:text-green-300"><i class="fas fa-file-excel mr-1"></i>Excel</button>
+
+                    <div class="glass-effect p-6 rounded-2xl overflow-hidden flex flex-col">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Matriz de KPIs Acumulados</h4>
+                            <button onclick="exportTable('globalTable')" class="text-xs bg-green-500/20 text-green-400 px-3 py-1 rounded hover:bg-green-500/30 transition-all"><i class="fas fa-file-excel mr-1"></i>Exportar Excel</button>
                         </div>
-                        <div class="overflow-auto scrollbar-thin flex-1">
+                        <div class="overflow-auto scrollbar-thin">
                             <table id="globalTable">
                                 <thead id="globalThead"></thead>
                                 <tbody id="globalTbody"></tbody>
@@ -127,22 +156,20 @@
                     <h3 class="text-2xl font-bold">2. Comparativo Mensual</h3>
                 </div>
                 <div class="glass-effect p-6 rounded-2xl">
-                    <div class="flex flex-col md:flex-row gap-4 items-center mb-6 bg-black/20 p-4 rounded-xl">
-                        <label class="text-sm font-bold text-purple-300">Selecciona el Mes a Analizar:</label>
-                        <select id="compareMonthSelect" onchange="updateMonthlyComparison()" class="bg-gray-800 border border-gray-600 rounded px-4 py-2 text-white outline-none focus:border-purple-500 w-full md:w-auto">
+                    <div class="flex flex-col md:flex-row gap-4 items-center mb-6 bg-black/20 p-4 rounded-xl border border-white/5">
+                        <label class="text-sm font-bold text-purple-300 whitespace-nowrap">Selecciona el Mes a Analizar:</label>
+                        <select id="compareMonthSelect" onchange="updateMonthlyComparison()" class="bg-gray-800 border border-gray-600 rounded px-4 py-2 text-white outline-none focus:border-purple-500 w-full md:w-64 cursor-pointer hover:bg-gray-700 transition-colors">
                             </select>
-                        <div class="text-xs text-gray-400 ml-auto">
-                            Compara todas las agencias activas en el mes seleccionado.
+                        <div class="text-xs text-gray-400 ml-auto hidden md:block">
+                            <i class="fas fa-info-circle mr-1"></i> Compara todas las agencias activas en el mes seleccionado.
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 gap-6">
-                        <div class="overflow-auto scrollbar-thin max-h-[500px]">
-                            <table id="monthlyTable">
-                                <thead id="monthlyThead"></thead>
-                                <tbody id="monthlyTbody"></tbody>
-                            </table>
-                        </div>
+                    <div class="overflow-auto scrollbar-thin max-h-[600px]">
+                        <table id="monthlyTable">
+                            <thead id="monthlyThead"></thead>
+                            <tbody id="monthlyTbody"></tbody>
+                        </table>
                     </div>
                 </div>
             </section>
@@ -153,22 +180,26 @@
                     <h3 class="text-2xl font-bold">3. Histórico por Agencia</h3>
                 </div>
                 <div class="glass-effect p-6 rounded-2xl">
-                    <div class="flex flex-col md:flex-row gap-4 items-center mb-6 bg-black/20 p-4 rounded-xl">
-                        <label class="text-sm font-bold text-orange-300">Selecciona Agencia:</label>
-                        <select id="historyAgencySelect" onchange="updateAgencyHistory()" class="bg-gray-800 border border-gray-600 rounded px-4 py-2 text-white outline-none focus:border-orange-500 w-full md:w-auto">
+                    <div class="flex flex-col md:flex-row gap-4 items-center mb-6 bg-black/20 p-4 rounded-xl border border-white/5">
+                        <label class="text-sm font-bold text-orange-300 whitespace-nowrap">Selecciona Agencia:</label>
+                        <select id="historyAgencySelect" onchange="updateAgencyHistory()" class="bg-gray-800 border border-gray-600 rounded px-4 py-2 text-white outline-none focus:border-orange-500 w-full md:w-64 cursor-pointer hover:bg-gray-700 transition-colors">
                             </select>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="lg:col-span-2 overflow-auto scrollbar-thin max-h-[500px] border border-white/10 rounded-xl">
+                    <div class="flex flex-col gap-6">
+                        
+                        <div class="bg-black/20 p-6 rounded-xl border border-white/5">
+                            <h4 class="text-sm font-bold text-gray-400 mb-4 text-center uppercase tracking-wider">Tendencia: Unidades Facturadas</h4>
+                            <div style="height: 300px; width: 100%;">
+                                <canvas id="historyChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="overflow-auto scrollbar-thin max-h-[600px] border border-white/10 rounded-xl">
                             <table id="historyTable">
                                 <thead id="historyThead"></thead>
                                 <tbody id="historyTbody"></tbody>
                             </table>
-                        </div>
-                        <div class="lg:col-span-1 bg-black/20 p-4 rounded-xl">
-                            <h4 class="text-sm text-gray-400 mb-4 text-center">Tendencia: Unidades Facturadas</h4>
-                            <canvas id="historyChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -177,7 +208,7 @@
         </div>
         
         <footer class="mt-12 text-center text-gray-500 text-xs py-8 border-t border-white/5">
-            © 2025 Grupo Daytona | Business Intelligence
+            © 2025 Grupo Daytona | Business Intelligence Dashboard
         </footer>
     </div>
 
@@ -189,9 +220,9 @@ const KPI_TARGET = 'Unidades Facturadas';
 const MONTHS_ORDER = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
 // --- ESTADO ---
-let rawData = []; // Datos crudos
-let activeAgencies = []; // Nombres seleccionados
-let activeMonths = []; // Meses seleccionados (String)
+let rawData = [];
+let activeAgencies = [];
+let activeMonths = [];
 let chartInstances = {};
 
 // --- INICIO ---
@@ -202,14 +233,12 @@ setInterval(updateClock, 60000); updateClock();
 async function connectToAPI() {
     uiStatus('loading', 'Conectando con Google Sheets...');
     try {
-        // 1. Obtener nombres de hojas
         const metaRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?key=${API_KEY}`);
         const meta = await metaRes.json();
-        const sheetNames = meta.sheets.map(s => s.properties.title).filter(t => !['Resumen', 'Dashboard', 'Config'].includes(t)); // Excluir hojas de sistema
+        const sheetNames = meta.sheets.map(s => s.properties.title).filter(t => !['Resumen', 'Dashboard', 'Config'].includes(t)); 
 
         if (!sheetNames.length) throw new Error("No se encontraron hojas de agencias.");
 
-        // 2. Obtener datos de todas las hojas
         rawData = [];
         for (const name of sheetNames) {
             const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name + '!A:Z')}?key=${API_KEY}`);
@@ -252,7 +281,6 @@ function parseSheet(values, agencyName) {
         let kpiIdx = headers.findIndex(h => h.toLowerCase().match(/kpi|concepto|indicador/));
         if (kpiIdx === -1) kpiIdx = 0;
 
-        // Detectar columnas de meses
         const mapMonths = {};
         headers.forEach((h, i) => {
             const match = MONTHS_ORDER.find(m => h.toLowerCase().startsWith(m.toLowerCase().substr(0,3)));
@@ -274,22 +302,19 @@ function parseSheet(values, agencyName) {
     } catch (e) { return null; }
 }
 
-// --- CORE DEL DASHBOARD ---
+// --- DASHBOARD LOGIC ---
 
 function initDashboard() {
     document.getElementById('dashboardContent').classList.remove('hidden');
     
-    // 1. Poblar Filtros Globales
     activeAgencies = rawData.map(d => d.agency).sort();
-    activeMonths = [...MONTHS_ORDER]; // Default todos
+    activeMonths = [...MONTHS_ORDER]; 
 
     renderChecks('agencyChecks', activeAgencies, 'agency');
     renderChecks('monthChecks', MONTHS_ORDER, 'month');
     
-    // 2. Poblar Selectores Específicos
     const monthSel = document.getElementById('compareMonthSelect');
     monthSel.innerHTML = MONTHS_ORDER.map(m => `<option value="${m}">${m}</option>`).join('');
-    // Seleccionar el mes actual o el último disponible por defecto
     monthSel.value = MONTHS_ORDER[new Date().getMonth()] || 'Enero'; 
 
     const agencySel = document.getElementById('historyAgencySelect');
@@ -299,7 +324,6 @@ function initDashboard() {
 }
 
 function updateAllTables() {
-    // Leer estado de checkboxes
     activeAgencies = getCheckedValues('agency');
     activeMonths = getCheckedValues('month').sort((a,b) => MONTHS_ORDER.indexOf(a) - MONTHS_ORDER.indexOf(b));
 
@@ -309,25 +333,72 @@ function updateAllTables() {
     }
 
     renderTable1_Global();
-    updateMonthlyComparison(); // Refresca tabla 2
-    updateAgencyHistory(); // Refresca tabla 3
+    updateMonthlyComparison(); 
+    updateAgencyHistory();
+    
+    // Generar IA Narrative
+    generateAINarrative();
 }
 
-// =========================================================
-// TABLA 1: GLOBAL ACUMULADO (La Matriz)
-// =========================================================
+// IA NARRATIVE GENERATOR
+function generateAINarrative() {
+    const container = document.getElementById('aiNarrativeText');
+    container.innerHTML = '';
+    
+    // Calcular datos básicos para el texto
+    let totalVol = 0;
+    let bestAgency = { name: '', val: 0 };
+    let activeKpiFound = false;
+
+    activeAgencies.forEach(a => {
+        const d = rawData.find(data => data.agency === a);
+        const k = d?.kpis.find(kpi => kpi.name === KPI_TARGET);
+        if(k) {
+            activeKpiFound = true;
+            let sum = 0;
+            activeMonths.forEach(m => sum += (k[m] || 0));
+            totalVol += sum;
+            if (sum > bestAgency.val) bestAgency = { name: a, val: sum };
+        }
+    });
+
+    if (!activeKpiFound) {
+        container.innerText = "No se encontraron datos del KPI principal para generar insights.";
+        return;
+    }
+
+    // Texto simulado (Prompt Logic)
+    const narrative = `REPORTE EJECUTIVO (${activeMonths[0]} - ${activeMonths[activeMonths.length-1]}): 
+    El Grupo Daytona acumula un total de ${fmt(totalVol)} unidades facturadas. 
+    La agencia líder del periodo es ${bestAgency.name} con ${fmt(bestAgency.val)} unidades (${Math.round((bestAgency.val/totalVol)*100)}% del total). 
+    Se recomienda revisar inventarios en las agencias con rendimiento inferior al promedio mensual.`;
+
+    // Efecto de escritura
+    let i = 0;
+    const speed = 15; 
+    function typeWriter() {
+        if (i < narrative.length) {
+            container.innerHTML += narrative.charAt(i);
+            i++;
+            setTimeout(typeWriter, speed);
+        } else {
+            container.classList.remove('typing-cursor');
+        }
+    }
+    typeWriter();
+}
+
+// TABLA 1: GLOBAL
 function renderTable1_Global() {
     const thead = document.getElementById('globalThead');
     const tbody = document.getElementById('globalTbody');
     thead.innerHTML = ''; tbody.innerHTML = '';
 
-    // Headers
     let htmlHead = `<tr><th>KPI</th>`;
     activeAgencies.forEach(a => htmlHead += `<th>${a}</th>`);
     htmlHead += `<th class="bg-blue-900/50">Total</th><th class="bg-blue-900/50">Promedio</th><th>Tendencia</th></tr>`;
     thead.innerHTML = htmlHead;
 
-    // Obtener lista única de KPIs
     const allKpis = [...new Set(rawData.flatMap(d => d.kpis.map(k => k.name)))];
 
     allKpis.forEach(kpiName => {
@@ -336,48 +407,37 @@ function renderTable1_Global() {
         
         let rowTotal = 0;
         let validAgencies = 0;
-        let startVal = 0; // Para tendencia (primer mes seleccionado)
-        let endVal = 0;   // Para tendencia (último mes seleccionado)
-
+        let startVal = 0; 
+        let endVal = 0;   
         const valsForHighlight = [];
 
-        activeAgencies.forEach((ag, idx) => {
+        activeAgencies.forEach((ag) => {
             const data = rawData.find(d => d.agency === ag);
             const kpiObj = data?.kpis.find(k => k.name === kpiName);
-            
-            // Suma de los meses SELECCIONADOS en el filtro global
             let sum = 0;
             if (kpiObj) {
                 activeMonths.forEach(m => sum += (kpiObj[m] || 0));
-                
-                // Datos para tendencia global del grupo
                 startVal += (kpiObj[activeMonths[0]] || 0);
                 endVal += (kpiObj[activeMonths[activeMonths.length-1]] || 0);
             }
-            
             rowTotal += sum;
             validAgencies++;
             valsForHighlight.push(sum);
-
             tr.innerHTML += `<td>${fmt(sum)}</td>`;
         });
 
-        // Highlight Highest
         const maxVal = Math.max(...valsForHighlight);
         Array.from(tr.children).slice(1).forEach((td, i) => {
             if (parseFloat(td.innerText.replace(/,/g,'')) === maxVal && maxVal > 0) td.classList.add('highest-val');
         });
 
-        // Totales y Promedios
         const avg = validAgencies ? rowTotal / validAgencies : 0;
         tr.innerHTML += `<td class="font-bold bg-blue-900/20">${fmt(rowTotal)}</td>`;
         tr.innerHTML += `<td class="font-bold bg-blue-900/20">${fmt(avg)}</td>`;
 
-        // Tendencia (Comparando Mes Inicial vs Mes Final de la selección global)
         const trend = startVal > 0 ? ((endVal - startVal) / startVal) * 100 : 0;
-        const trendIcon = trend > 0 ? '↑' : (trend < 0 ? '↓' : '-');
         const trendClass = trend > 0 ? 'trend-up' : (trend < 0 ? 'trend-down' : 'trend-neutral');
-        tr.innerHTML += `<td class="${trendClass}">${trendIcon} ${Math.abs(trend).toFixed(1)}%</td>`;
+        tr.innerHTML += `<td class="${trendClass}">${trend > 0 ? '↑' : (trend < 0 ? '↓' : '-')} ${Math.abs(trend).toFixed(1)}%</td>`;
 
         tbody.appendChild(tr);
     });
@@ -386,7 +446,6 @@ function renderTable1_Global() {
 }
 
 function renderWaterfall() {
-    // Calcula totales del grupo mes a mes (basado en filtros)
     const chartData = activeMonths.map(m => {
         let sum = 0;
         activeAgencies.forEach(a => {
@@ -397,8 +456,6 @@ function renderWaterfall() {
         return sum;
     });
 
-    // Lógica ECharts Waterfall simple
-    // (Simplificada para visualización directa de acumulado vs variación)
     const dom = document.getElementById('waterfallChart');
     if (chartInstances.waterfall) chartInstances.waterfall.dispose();
     chartInstances.waterfall = echarts.init(dom, 'dark');
@@ -406,30 +463,30 @@ function renderWaterfall() {
     const option = {
         backgroundColor: 'transparent',
         tooltip: { trigger: 'axis' },
-        grid: { left: 0, right: 0, top: 10, bottom: 20, containLabel:true },
+        grid: { left: '2%', right: '2%', top: 20, bottom: 20, containLabel:true },
         xAxis: { type: 'category', data: activeMonths },
         yAxis: { type: 'value', splitLine: { show: false } },
         series: [{
             type: 'bar',
             data: chartData,
-            itemStyle: { color: '#3B82F6' },
+            itemStyle: { color: '#3B82F6', borderRadius: [4, 4, 0, 0] },
             label: { show: true, position: 'top', color: '#fff' }
         }]
     };
     chartInstances.waterfall.setOption(option);
+    // Resize chart on window resize
+    window.addEventListener('resize', function() {
+        chartInstances.waterfall.resize();
+    });
 }
 
-
-// =========================================================
-// TABLA 2: COMPARATIVO MENSUAL (Un Mes Específico)
-// =========================================================
+// TABLA 2: MENSUAL
 function updateMonthlyComparison() {
     const selectedMonth = document.getElementById('compareMonthSelect').value;
     const thead = document.getElementById('monthlyThead');
     const tbody = document.getElementById('monthlyTbody');
     thead.innerHTML = ''; tbody.innerHTML = '';
 
-    // Headers
     let htmlHead = `<tr><th>KPI (${selectedMonth})</th>`;
     activeAgencies.forEach(a => htmlHead += `<th>${a}</th>`);
     htmlHead += `<th class="avg-col">Promedio Mes</th><th class="bg-purple-900/50">Ganador</th></tr>`;
@@ -440,7 +497,6 @@ function updateMonthlyComparison() {
     allKpis.forEach(kpiName => {
         let tr = document.createElement('tr');
         tr.innerHTML = `<td>${kpiName}</td>`;
-
         let rowSum = 0;
         let maxVal = -Infinity;
         let winnerName = '-';
@@ -450,41 +506,30 @@ function updateMonthlyComparison() {
             const data = rawData.find(d => d.agency === ag);
             const kpiObj = data?.kpis.find(k => k.name === kpiName);
             const val = kpiObj ? (kpiObj[selectedMonth] || 0) : 0;
-            
             rowSum += val;
             vals.push(val);
-            
             if (val > maxVal) { maxVal = val; winnerName = ag; }
-
             tr.innerHTML += `<td>${fmt(val)}</td>`;
         });
 
-        // Highlight
         Array.from(tr.children).slice(1).forEach((td, i) => {
             if (vals[i] === maxVal && maxVal > 0) td.classList.add('highest-val');
         });
 
-        // Promedio del Mes
         const avg = activeAgencies.length ? rowSum / activeAgencies.length : 0;
         tr.innerHTML += `<td class="avg-col font-bold">${fmt(avg)}</td>`;
-        
-        // Ganador
         tr.innerHTML += `<td class="text-purple-300 font-bold">${maxVal > 0 ? winnerName : '-'}</td>`;
-
         tbody.appendChild(tr);
     });
 }
 
-// =========================================================
-// TABLA 3: HISTÓRICO AGENCIA (Mes a Mes) - FIX DICIEMBRE
-// =========================================================
+// TABLA 3: HISTÓRICO
 function updateAgencyHistory() {
     const selectedAgency = document.getElementById('historyAgencySelect').value;
     const thead = document.getElementById('historyThead');
     const tbody = document.getElementById('historyTbody');
     thead.innerHTML = ''; tbody.innerHTML = '';
 
-    // Headers: Solo los meses ACTIVOS en el filtro global
     let htmlHead = `<tr><th>KPI</th>`;
     activeMonths.forEach(m => htmlHead += `<th>${m}</th>`);
     htmlHead += `<th class="avg-col">Promedio</th><th>Tendencia</th></tr>`;
@@ -493,14 +538,12 @@ function updateAgencyHistory() {
     const data = rawData.find(d => d.agency === selectedAgency);
     if (!data) return;
 
-    // Chart Data prep
     const chartLabels = activeMonths;
     const chartValues = [];
 
     data.kpis.forEach(k => {
         let tr = document.createElement('tr');
         tr.innerHTML = `<td>${k.name}</td>`;
-        
         let sum = 0;
         let start = k[activeMonths[0]] || 0;
         let end = k[activeMonths[activeMonths.length-1]] || 0;
@@ -509,27 +552,20 @@ function updateAgencyHistory() {
             const val = k[m] || 0;
             sum += val;
             tr.innerHTML += `<td>${fmt(val)}</td>`;
-            
-            if (k.name === KPI_TARGET) chartValues.push(val); // Para el gráfico solo este KPI
+            if (k.name === KPI_TARGET) chartValues.push(val);
         });
 
-        // Promedio
         const avg = sum / activeMonths.length;
         tr.innerHTML += `<td class="avg-col font-bold">${fmt(avg)}</td>`;
-
-        // Tendencia
         const trend = start > 0 ? ((end - start) / start) * 100 : 0;
         const trendClass = trend > 0 ? 'trend-up' : (trend < 0 ? 'trend-down' : 'trend-neutral');
         tr.innerHTML += `<td class="${trendClass}">${trend > 0 ? '↑' : (trend < 0 ? '↓' : '-')} ${Math.abs(trend).toFixed(1)}%</td>`;
-
         tbody.appendChild(tr);
     });
 
-    // Render Mini Chart
     const ctx = document.getElementById('historyChart').getContext('2d');
     if (chartInstances.history) chartInstances.history.destroy();
     
-    // Si no hay valores (ej. kpi no encontrado) llenamos con ceros
     if (chartValues.length === 0) activeMonths.forEach(() => chartValues.push(0));
 
     chartInstances.history = new Chart(ctx, {
@@ -546,14 +582,15 @@ function updateAgencyHistory() {
             }]
         },
         options: {
+            responsive: true,
+            maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: { x: { display: false }, y: { display: false } }
         }
     });
 }
 
-
-// --- UTILITIES ---
+// UTILITIES
 function fmt(n) { return n.toLocaleString('en-US', {maximumFractionDigits: 1}); }
 function uiStatus(type, msg) {
     const el = document.getElementById('status');
