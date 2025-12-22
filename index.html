@@ -35,7 +35,16 @@
         .trend-up { color: #4ade80; font-weight: bold; }
         .trend-down { color: #f87171; font-weight: bold; }
         .trend-neutral { color: #fbbf24; font-weight: bold; }
-        .highest-val { background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #4ade80; font-weight: bold; }
+        
+        /* Highlight Verde para el número más alto */
+        .highest-val { 
+            background: rgba(34, 197, 94, 0.2) !important; 
+            border: 1px solid rgba(34, 197, 94, 0.5) !important; 
+            color: #4ade80 !important; 
+            font-weight: 800 !important; 
+            box-shadow: inset 0 0 10px rgba(34, 197, 94, 0.1);
+        }
+        
         .avg-col { background: rgba(59, 130, 246, 0.1); }
         .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
         .scrollbar-thin::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
@@ -102,7 +111,8 @@
                     <h3 class="text-lg font-semibold flex items-center gap-2"><i class="fas fa-filter text-blue-400"></i> Filtros Globales</h3>
                     <i class="fas fa-chevron-down text-gray-400"></i>
                 </div>
-                <div id="filtersPanel" class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden"> <div>
+                <div id="filtersPanel" class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden"> 
+                    <div>
                         <label class="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2 block">Agencias</label>
                         <div class="flex gap-2 mb-2">
                             <button onclick="toggleAll('agency', true)" class="text-xs text-green-400 hover:underline">Todas</button>
@@ -129,7 +139,6 @@
                 </div>
                 
                 <div class="flex flex-col gap-6">
-                    
                     <div class="glass-effect p-6 rounded-2xl">
                         <h4 class="text-sm font-bold text-gray-400 mb-4 uppercase tracking-wider">Variación Mensual Total Grupo</h4>
                         <div id="waterfallChart" style="height: 350px; width: 100%;"></div>
@@ -138,7 +147,9 @@
                     <div class="glass-effect p-6 rounded-2xl overflow-hidden flex flex-col">
                         <div class="flex justify-between items-center mb-4">
                             <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Matriz de KPIs Acumulados</h4>
-                            <button onclick="exportTable('globalTable')" class="text-xs bg-green-500/20 text-green-400 px-3 py-1 rounded hover:bg-green-500/30 transition-all"><i class="fas fa-file-excel mr-1"></i>Exportar Excel</button>
+                            <button onclick="exportTable('globalTable', 'Resumen_Global_Daytona')" class="text-xs bg-green-500/20 text-green-400 px-3 py-1 rounded hover:bg-green-500/30 transition-all font-semibold border border-green-500/30">
+                                <i class="fas fa-file-excel mr-1"></i>Exportar a Excel
+                            </button>
                         </div>
                         <div class="overflow-auto scrollbar-thin">
                             <table id="globalTable">
@@ -156,13 +167,18 @@
                     <h3 class="text-2xl font-bold">2. Comparativo Mensual</h3>
                 </div>
                 <div class="glass-effect p-6 rounded-2xl">
-                    <div class="flex flex-col md:flex-row gap-4 items-center mb-6 bg-black/20 p-4 rounded-xl border border-white/5">
-                        <label class="text-sm font-bold text-purple-300 whitespace-nowrap">Selecciona el Mes a Analizar:</label>
-                        <select id="compareMonthSelect" onchange="updateMonthlyComparison()" class="bg-gray-800 border border-gray-600 rounded px-4 py-2 text-white outline-none focus:border-purple-500 w-full md:w-64 cursor-pointer hover:bg-gray-700 transition-colors">
-                            </select>
-                        <div class="text-xs text-gray-400 ml-auto hidden md:block">
-                            <i class="fas fa-info-circle mr-1"></i> Compara todas las agencias activas en el mes seleccionado.
+                    <div class="flex flex-col md:flex-row gap-4 items-center mb-6">
+                        <div class="flex-1 flex flex-col md:flex-row gap-4 items-center bg-black/20 p-4 rounded-xl border border-white/5 w-full">
+                            <label class="text-sm font-bold text-purple-300 whitespace-nowrap">Selecciona el Mes:</label>
+                            <select id="compareMonthSelect" onchange="updateMonthlyComparison()" class="bg-gray-800 border border-gray-600 rounded px-4 py-2 text-white outline-none focus:border-purple-500 w-full md:w-64 cursor-pointer hover:bg-gray-700 transition-colors">
+                                </select>
+                            <div class="text-xs text-gray-400 ml-auto hidden md:block">
+                                <i class="fas fa-info-circle mr-1"></i> Compara todas las agencias activas.
+                            </div>
                         </div>
+                        <button onclick="exportTable('monthlyTable', 'Comparativo_Mensual_Daytona')" class="text-xs bg-green-500/20 text-green-400 px-4 py-3 rounded-xl hover:bg-green-500/30 transition-all font-semibold border border-green-500/30 whitespace-nowrap h-full self-stretch md:self-auto">
+                            <i class="fas fa-file-excel mr-1"></i>Exportar Tabla
+                        </button>
                     </div>
 
                     <div class="overflow-auto scrollbar-thin max-h-[600px]">
@@ -180,14 +196,18 @@
                     <h3 class="text-2xl font-bold">3. Histórico por Agencia</h3>
                 </div>
                 <div class="glass-effect p-6 rounded-2xl">
-                    <div class="flex flex-col md:flex-row gap-4 items-center mb-6 bg-black/20 p-4 rounded-xl border border-white/5">
-                        <label class="text-sm font-bold text-orange-300 whitespace-nowrap">Selecciona Agencia:</label>
-                        <select id="historyAgencySelect" onchange="updateAgencyHistory()" class="bg-gray-800 border border-gray-600 rounded px-4 py-2 text-white outline-none focus:border-orange-500 w-full md:w-64 cursor-pointer hover:bg-gray-700 transition-colors">
-                            </select>
+                    <div class="flex flex-col md:flex-row gap-4 items-center mb-6">
+                         <div class="flex-1 flex flex-col md:flex-row gap-4 items-center bg-black/20 p-4 rounded-xl border border-white/5 w-full">
+                            <label class="text-sm font-bold text-orange-300 whitespace-nowrap">Selecciona Agencia:</label>
+                            <select id="historyAgencySelect" onchange="updateAgencyHistory()" class="bg-gray-800 border border-gray-600 rounded px-4 py-2 text-white outline-none focus:border-orange-500 w-full md:w-64 cursor-pointer hover:bg-gray-700 transition-colors">
+                                </select>
+                        </div>
+                        <button onclick="exportTable('historyTable', 'Historico_Agencia_Daytona')" class="text-xs bg-green-500/20 text-green-400 px-4 py-3 rounded-xl hover:bg-green-500/30 transition-all font-semibold border border-green-500/30 whitespace-nowrap h-full self-stretch md:self-auto">
+                            <i class="fas fa-file-excel mr-1"></i>Exportar Tabla
+                        </button>
                     </div>
 
                     <div class="flex flex-col gap-6">
-                        
                         <div class="bg-black/20 p-6 rounded-xl border border-white/5">
                             <h4 class="text-sm font-bold text-gray-400 mb-4 text-center uppercase tracking-wider">Tendencia: Unidades Facturadas</h4>
                             <div style="height: 300px; width: 100%;">
@@ -345,7 +365,6 @@ function generateAINarrative() {
     const container = document.getElementById('aiNarrativeText');
     container.innerHTML = '';
     
-    // Calcular datos básicos para el texto
     let totalVol = 0;
     let bestAgency = { name: '', val: 0 };
     let activeKpiFound = false;
@@ -367,13 +386,11 @@ function generateAINarrative() {
         return;
     }
 
-    // Texto simulado (Prompt Logic)
     const narrative = `REPORTE EJECUTIVO (${activeMonths[0]} - ${activeMonths[activeMonths.length-1]}): 
     El Grupo Daytona acumula un total de ${fmt(totalVol)} unidades facturadas. 
     La agencia líder del periodo es ${bestAgency.name} con ${fmt(bestAgency.val)} unidades (${Math.round((bestAgency.val/totalVol)*100)}% del total). 
     Se recomienda revisar inventarios en las agencias con rendimiento inferior al promedio mensual.`;
 
-    // Efecto de escritura
     let i = 0;
     const speed = 15; 
     function typeWriter() {
@@ -388,7 +405,7 @@ function generateAINarrative() {
     typeWriter();
 }
 
-// TABLA 1: GLOBAL
+// TABLA 1: GLOBAL (ACUMULADO)
 function renderTable1_Global() {
     const thead = document.getElementById('globalThead');
     const tbody = document.getElementById('globalTbody');
@@ -474,7 +491,6 @@ function renderWaterfall() {
         }]
     };
     chartInstances.waterfall.setOption(option);
-    // Resize chart on window resize
     window.addEventListener('resize', function() {
         chartInstances.waterfall.resize();
     });
@@ -523,7 +539,7 @@ function updateMonthlyComparison() {
     });
 }
 
-// TABLA 3: HISTÓRICO
+// TABLA 3: HISTÓRICO (AGENCIA MES A MES)
 function updateAgencyHistory() {
     const selectedAgency = document.getElementById('historyAgencySelect').value;
     const thead = document.getElementById('historyThead');
@@ -544,15 +560,31 @@ function updateAgencyHistory() {
     data.kpis.forEach(k => {
         let tr = document.createElement('tr');
         tr.innerHTML = `<td>${k.name}</td>`;
+        
         let sum = 0;
         let start = k[activeMonths[0]] || 0;
         let end = k[activeMonths[activeMonths.length-1]] || 0;
+        
+        // Recopilamos valores para encontrar el máximo del histórico
+        const rowValues = []; 
 
         activeMonths.forEach(m => {
             const val = k[m] || 0;
             sum += val;
-            tr.innerHTML += `<td>${fmt(val)}</td>`;
+            rowValues.push(val); // Guardamos para comparar
+            
             if (k.name === KPI_TARGET) chartValues.push(val);
+        });
+        
+        // Encontramos el valor máximo de la fila
+        const maxVal = Math.max(...rowValues);
+
+        // Volvemos a iterar para crear las celdas y aplicar clase
+        activeMonths.forEach((m, idx) => {
+            const val = k[m] || 0;
+            // Si es el valor máximo y es mayor a 0, aplicamos la clase verde
+            const highlightClass = (val === maxVal && maxVal > 0) ? 'class="highest-val"' : '';
+            tr.innerHTML += `<td ${highlightClass}>${fmt(val)}</td>`;
         });
 
         const avg = sum / activeMonths.length;
@@ -614,9 +646,13 @@ function getCheckedValues(type) {
 function toggleAll(type, state) {
     document.querySelectorAll(`input[data-type="${type}"]`).forEach(cb => cb.checked = state);
 }
-function exportTable(id) {
-    const wb = XLSX.utils.table_to_book(document.getElementById(id));
-    XLSX.writeFile(wb, `Daytona_Export_${id}.xlsx`);
+
+// FUNCIÓN DE EXPORTACIÓN GENÉRICA
+function exportTable(tableId, filename = 'Daytona_Reporte') {
+    const wb = XLSX.utils.table_to_book(document.getElementById(tableId), {sheet: "Datos"});
+    // Agregamos fecha al nombre del archivo
+    const date = new Date().toLocaleDateString('es-MX').replace(/\//g, '-');
+    XLSX.writeFile(wb, `${filename}_${date}.xlsx`);
 }
 
 </script>
