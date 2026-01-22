@@ -141,7 +141,7 @@
         <div id="status" class="mb-6 p-4 rounded-lg text-sm font-bold shadow-sm flex items-center justify-between bg-blue-50 text-blue-700">
             <div class="flex items-center">
                 <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-5 w-5 mr-3"></div>
-                Iniciando sistema...
+                Conectando con sistema Daytona...
             </div>
         </div>
 
@@ -351,12 +351,13 @@ setInterval(updateClock, 60000); updateClock();
 
 // --- CARGA DE DATOS ---
 async function connectToAPI() {
-    uiStatus('loading', 'Conectando con Google Sheets API...');
+    // Nota: El banner de "Cargando" ya está visible en el HTML por defecto para evitar pantalla blanca.
     
-    // Verificación de seguridad para evitar pantalla blanca si faltan llaves
+    // Verificación de seguridad rápida para no esperar timeout si faltan llaves
     if (API_KEY === "TU_API_KEY_AQUI" || SPREADSHEET_ID === "TU_ID_DE_HOJA_AQUI") {
-        uiStatus('error', 'Falta configuración. Cargando DEMO en 2 seg...');
-        setTimeout(loadDemo, 1500);
+        console.warn("Faltan llaves API. Cargando modo Demo...");
+        uiStatus('error', 'Llaves no configuradas. Cargando DEMO...');
+        setTimeout(loadDemo, 1000); // Pequeña pausa para ver el mensaje
         return;
     }
 
@@ -759,10 +760,10 @@ function exportTable(tableId, filename) {
 }
 
 // --- EJECUCIÓN AUTOMÁTICA AL ABRIR ---
-window.onload = function() {
-    uiStatus('loading', 'Iniciando sistema Daytona...');
+// Usamos DOMContentLoaded para que sea inmediato y no espere imágenes
+document.addEventListener('DOMContentLoaded', () => {
     connectToAPI();
-};
+});
 
 </script>
 </body>
