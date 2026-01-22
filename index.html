@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Gerencial - Grupo Daytona</title>
+    <title>Dashboard Nuevos - Grupo Daytona</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -46,10 +46,10 @@
         td:first-child, th:first-child { position: sticky; left: 0; z-index: 25; text-align: left; font-weight: 700; background-color: #f9fafb; border-right: 2px solid #e5e7eb; }
         th:first-child { background-color: #fd0019; color: white; } 
 
-        /* HIGHLIGHTS: VERDE PARA GANADORES */
+        /* HIGHLIGHTS: Verde para ganadores (incluso si es inverso) */
         .highest-highlight { 
-            background-color: #dcfce7 !important; 
-            color: #166534 !important; 
+            background-color: #dcfce7 !important; /* Verde Claro */
+            color: #166534 !important; /* Verde Oscuro */
             font-weight: 800 !important;
             border: 1px solid #86efac !important;
         }
@@ -90,14 +90,17 @@
         <div id="status" class="mb-6 p-4 rounded-lg text-sm font-bold shadow-sm flex items-center justify-between bg-blue-50 text-blue-700">
             <div class="flex items-center">
                 <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-5 w-5 mr-3"></div>
-                Conectando con Google Sheets...
+                Conectando con Autos Nuevos...
             </div>
         </div>
 
         <div id="dashboardContent" class="hidden space-y-8">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="card-daytona p-6 flex flex-col justify-between">
-                    <div><p class="text-xs font-bold text-gray-400 uppercase">Ventas Acumuladas</p><h3 class="text-3xl font-black text-gray-800 mt-1" id="cardTotalSales">0</h3></div>
+                <div class="card-daytona p-6 flex flex-col justify-between" title="KPI Principal">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase">Ventas Acumuladas</p>
+                        <h3 class="text-3xl font-black text-gray-800 mt-1" id="cardTotalSales">0</h3>
+                    </div>
                     <div class="mt-4 flex items-center text-sm text-green-600 font-bold"><i class="fas fa-chart-line mr-1"></i> <span id="cardTotalLabel">Periodo Actual</span></div>
                 </div>
                 <div class="card-daytona p-6 flex flex-col justify-between">
@@ -133,11 +136,11 @@
             </div>
 
             <section>
-                <div class="flex items-center gap-3 mb-4"><div class="bg-daytona-red w-1.5 h-8 rounded-full"></div><h2 class="text-xl font-bold text-gray-800">Resumen Global</h2></div>
+                <div class="flex items-center gap-3 mb-4"><div class="bg-daytona-red w-1.5 h-8 rounded-full"></div><h2 class="text-xl font-bold text-gray-800">Resumen Global Nuevos</h2></div>
                 <div class="space-y-6">
                     <div class="card-daytona p-6"><h4 class="text-sm font-bold text-gray-500 mb-4 uppercase tracking-wider text-center">Variación Mensual (Grupo)</h4><div id="waterfallChart" style="height: 350px; width: 100%;"></div></div>
                     <div class="card-daytona p-6 overflow-hidden">
-                        <div class="flex justify-between items-center mb-4"><h4 class="text-sm font-bold text-gray-700">Matriz de KPIs</h4><button onclick="exportTable('globalTable', 'Daytona_Global')" class="text-xs bg-green-50 text-green-700 px-3 py-1.5 rounded border border-green-200 font-bold hover:bg-green-100 transition-colors"><i class="fas fa-file-excel mr-1"></i> Excel</button></div>
+                        <div class="flex justify-between items-center mb-4"><h4 class="text-sm font-bold text-gray-700">Matriz de KPIs (Promedios Inteligentes)</h4><button onclick="exportTable('globalTable', 'Daytona_Nuevos_Global')" class="text-xs bg-green-50 text-green-700 px-3 py-1.5 rounded border border-green-200 font-bold hover:bg-green-100 transition-colors"><i class="fas fa-file-excel mr-1"></i> Excel</button></div>
                         <div class="overflow-auto scrollbar-thin"><table id="globalTable"><thead id="globalThead"></thead><tbody id="globalTbody"></tbody></table></div>
                     </div>
                 </div>
@@ -149,7 +152,7 @@
                     <div class="flex flex-col md:flex-row gap-4 items-center mb-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
                         <div class="flex-1 w-full"><label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Selecciona Mes</label><select id="compareMonthSelect" onchange="updateMonthlyComparison()" class="input-daytona w-full bg-white border border-gray-300 text-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-daytona-red focus:border-daytona-red outline-none font-medium"></select></div>
                         <div class="hidden md:block w-px h-10 bg-gray-300"></div>
-                        <div class="flex-none"><button onclick="exportTable('monthlyTable', 'Daytona_Mensual')" class="text-xs bg-green-50 text-green-700 px-4 py-2 rounded-lg border border-green-200 font-bold hover:bg-green-100 transition-colors"><i class="fas fa-file-excel mr-1"></i> Exportar Tabla</button></div>
+                        <div class="flex-none"><button onclick="exportTable('monthlyTable', 'Daytona_Nuevos_Mensual')" class="text-xs bg-green-50 text-green-700 px-4 py-2 rounded-lg border border-green-200 font-bold hover:bg-green-100 transition-colors"><i class="fas fa-file-excel mr-1"></i> Exportar Tabla</button></div>
                     </div>
                     <div class="overflow-auto scrollbar-thin max-h-[600px]"><table id="monthlyTable"><thead id="monthlyThead"></thead><tbody id="monthlyTbody"></tbody></table></div>
                 </div>
@@ -161,7 +164,7 @@
                     <div class="flex flex-col md:flex-row gap-4 items-center mb-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
                         <div class="flex-1 w-full"><label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Selecciona Agencia</label><select id="historyAgencySelect" onchange="updateAgencyHistory()" class="input-daytona w-full bg-white border border-gray-300 text-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-daytona-red focus:border-daytona-red outline-none font-medium"></select></div>
                         <div class="hidden md:block w-px h-10 bg-gray-300"></div>
-                        <div class="flex-none"><button onclick="exportTable('historyTable', 'Daytona_Historico')" class="text-xs bg-green-50 text-green-700 px-4 py-2 rounded-lg border border-green-200 font-bold hover:bg-green-100 transition-colors"><i class="fas fa-file-excel mr-1"></i> Exportar Tabla</button></div>
+                        <div class="flex-none"><button onclick="exportTable('historyTable', 'Daytona_Nuevos_Historico')" class="text-xs bg-green-50 text-green-700 px-4 py-2 rounded-lg border border-green-200 font-bold hover:bg-green-100 transition-colors"><i class="fas fa-file-excel mr-1"></i> Exportar Tabla</button></div>
                     </div>
                     <div class="space-y-6">
                         <div class="bg-white border border-gray-100 p-4 rounded-xl shadow-inner"><h4 class="text-xs font-bold text-gray-400 mb-2 text-center uppercase">Tendencia de Ventas</h4><div style="height: 250px; width: 100%;"><canvas id="historyChart"></canvas></div></div>
@@ -174,19 +177,36 @@
     </div>
 
 <script>
-// --- CONFIGURACIÓN ---
+// --- CONFIGURACIÓN NUEVOS ---
 const API_KEY = "AIzaSyATBI8jMV1AtfsjhmwEwfOMYSdKmhMM5ck"; 
-const SPREADSHEET_ID = "1xzQYs3KOIINVTTvVOYSQDiuiQDUsCWwqEDoQAUvBNfQ";
+const SPREADSHEET_ID = "1xzQYs3KOIINVTTvVOYSQDiuiQDUsCWwqEDoQAUvBNfQ"; // ID DE NUEVOS
 
 const KPI_TARGET = 'Unidades Facturadas'; 
 const MONTHS_ORDER = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
-// --- KPIS INVERSOS (Menos es Mejor) ---
-// Usamos "includes" para que coincida aunque tenga errores de acentos o espacios
+// --- LÓGICA DE NEGOCIO ---
+
+// 1. INVERSOS (Menos es Mejor)
 const INVERSE_KPIS = [
     'Inventario Total Unidades',
     'Gasto Financiero',
-    'Antigûedad', 'Antigüedad', 'Antiguedad' // Variantes para evitar errores
+    'Antigûedad', 'Antigüedad', 'Antiguedad'
+];
+
+// 2. PROMEDIOS TEMPORALES (Promedio mensual en la columna Total)
+const AVERAGE_KPIS = [
+    'Utilidad por auto', 'Margen', 'Efectividad de Cierre',
+    'Inventario Total', 'Gasto Financiero', 'Antigûedad', 'Antigüedad',
+    'Venta de Accesorios', 'Penetración', 'Aprobación',
+    'Garantías', 'Seguros', 'Monto promedio', 'Ingresos Totales F&I', '%'
+];
+
+// 3. SUMA DE GRUPO (Son promedio en tiempo, pero se suman entre agencias)
+const GROUP_SUM_KPIS = [
+    'Inventario Total', 
+    'Gasto Financiero',
+    'Venta de Accesorios',
+    'Ingresos Totales F&I'
 ];
 
 // --- ESTADO ---
@@ -207,9 +227,8 @@ async function connectToAPI() {
     try {
         const metaRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?key=${API_KEY}`);
         
-        // Diagnóstico de Error
-        if (metaRes.status === 429) throw new Error("ERROR 429: Demasiadas solicitudes. Espera un minuto.");
-        if (metaRes.status === 403) throw new Error("ERROR 403: Permisos denegados. Revisa el archivo.");
+        if (metaRes.status === 429) throw new Error("ERROR 429: Demasiadas solicitudes. Esperando...");
+        if (metaRes.status === 403) throw new Error("ERROR 403: Permisos denegados.");
         if (!metaRes.ok) throw new Error(`Error de conexión (${metaRes.status}).`);
 
         const meta = await metaRes.json();
@@ -217,9 +236,7 @@ async function connectToAPI() {
 
         rawData = [];
         for (const name of sheetNames) {
-            // PAUSA DE 250ms ENTRE PETICIONES PARA EVITAR BLOQUEO DE GOOGLE
-            await new Promise(r => setTimeout(r, 250));
-            
+            await new Promise(r => setTimeout(r, 250)); // Pausa antibloqueo
             const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name + '!A:Z')}?key=${API_KEY}`);
             const json = await res.json();
             if (json.values && json.values.length > 1) {
@@ -229,23 +246,23 @@ async function connectToAPI() {
         }
         if(rawData.length === 0) throw new Error("Datos vacíos");
         initDashboard();
-        uiStatus('success', `Conectado: ${rawData.length} agencias.`);
+        uiStatus('success', `Conectado: ${rawData.length} agencias de Nuevos.`);
     } catch (e) {
         console.error(e);
         uiStatus('error', 'ERROR: ' + e.message);
-        alert("Fallo la conexión: " + e.message + "\n\nCargando modo demostración para que veas el diseño.");
+        alert("Fallo la conexión: " + e.message + "\n\nCargando modo demostración.");
         setTimeout(loadDemo, 500); 
     }
 }
 
 function loadDemo() {
     const agencies = ['Honda Demo', 'KIA Demo', 'MG Demo'];
-    const kpis = [KPI_TARGET, 'Ventas Brutas', 'Leads Digitales', 'Inventario Total Unidades', 'Gasto Financiero'];
+    const kpis = [KPI_TARGET, 'Inventario Total Unidades', 'Gasto Financiero', 'Margen Autos Nuevos %'];
     rawData = agencies.map(name => ({
         agency: name,
         kpis: kpis.map(k => {
             const row = { name: k };
-            MONTHS_ORDER.forEach(m => row[m] = Math.floor(Math.random() * (k.includes('Financiero') ? 50000 : 200)));
+            MONTHS_ORDER.forEach(m => row[m] = Math.floor(Math.random() * (k.includes('%') ? 20 : 200)));
             return row;
         })
     }));
@@ -319,6 +336,7 @@ function calculateTopStats() {
     document.getElementById('cardAvg').innerText = fmt(avg);
 }
 
+// --- RENDERIZADO INTELIGENTE (PROMEDIOS VS SUMAS) ---
 function renderTable1_Global() {
     const thead = document.getElementById('globalThead'); const tbody = document.getElementById('globalTbody'); thead.innerHTML = ''; tbody.innerHTML = '';
     let htmlHead = `<tr><th>KPI</th>`; activeAgencies.forEach(a => htmlHead += `<th>${a}</th>`); htmlHead += `<th style="background-color:#1f2937;">Total</th><th style="background-color:#1f2937;">Prom.</th><th>Tend.</th></tr>`; thead.innerHTML = htmlHead;
@@ -326,22 +344,54 @@ function renderTable1_Global() {
     
     allKpis.forEach(kpiName => {
         const isInverse = INVERSE_KPIS.some(inv => kpiName.includes(inv));
+        const isAverageKPI = AVERAGE_KPIS.some(avg => kpiName.includes(avg));
+        const isGroupSum = GROUP_SUM_KPIS.some(gs => kpiName.includes(gs));
+
         let tr = document.createElement('tr'); tr.innerHTML = `<td class="font-medium text-gray-900">${kpiName}</td>`;
         let rowTotal = 0; let validAgencies = 0; let startVal = 0, endVal = 0; const valsForHighlight = [];
         
         activeAgencies.forEach((ag) => {
             const data = rawData.find(d => d.agency === ag); const kpiObj = data?.kpis.find(k => k.name === kpiName);
-            let sum = 0; if (kpiObj) { activeMonths.forEach(m => sum += (kpiObj[m] || 0)); startVal += (kpiObj[activeMonths[0]] || 0); endVal += (kpiObj[activeMonths[activeMonths.length-1]] || 0); }
-            rowTotal += sum; validAgencies++; valsForHighlight.push(sum); tr.innerHTML += `<td>${fmt(sum)}</td>`;
+            let sum = 0; let count = 0;
+            if (kpiObj) { 
+                activeMonths.forEach(m => { 
+                    const v = (kpiObj[m] || 0); 
+                    sum += v; 
+                    if(v !== 0) count++;
+                }); 
+                startVal += (kpiObj[activeMonths[0]] || 0); 
+                endVal += (kpiObj[activeMonths[activeMonths.length-1]] || 0); 
+            }
+            
+            // LÓGICA DE CELDA: ¿Suma o Promedio?
+            let cellValue = sum;
+            if (isAverageKPI && count > 0) {
+                cellValue = sum / count;
+            } else if (isAverageKPI && count === 0) {
+                cellValue = 0;
+            }
+
+            rowTotal += cellValue; 
+            if(cellValue !== 0) validAgencies++; 
+            valsForHighlight.push(cellValue); 
+            tr.innerHTML += `<td>${fmt(cellValue)}</td>`;
         });
         
+        // LÓGICA DE TOTAL DE GRUPO
+        let groupTotal = rowTotal;
+        if (isAverageKPI && !isGroupSum && validAgencies > 0) {
+            groupTotal = rowTotal / validAgencies;
+        }
+
         const bestVal = isInverse ? Math.min(...valsForHighlight) : Math.max(...valsForHighlight);
         Array.from(tr.children).slice(1).forEach((td, i) => {
             const val = parseFloat(td.innerText.replace(/,/g,''));
             if (val === bestVal && (isInverse || bestVal > 0)) td.classList.add('highest-highlight'); 
         });
 
-        const avg = validAgencies ? rowTotal / validAgencies : 0; tr.innerHTML += `<td class="font-bold bg-gray-100 text-gray-900">${fmt(rowTotal)}</td>`; tr.innerHTML += `<td class="font-bold bg-gray-100">${fmt(avg)}</td>`;
+        tr.innerHTML += `<td class="font-bold bg-gray-100 text-gray-900">${fmt(groupTotal)}</td>`; 
+        tr.innerHTML += `<td class="font-bold bg-gray-100">${fmt(validAgencies > 0 ? rowTotal / validAgencies : 0)}</td>`;
+        
         const trend = startVal > 0 ? ((endVal - startVal) / startVal) * 100 : 0; 
         const isGood = isInverse ? trend < 0 : trend > 0;
         const trendClass = isGood ? 'text-green-600' : (trend === 0 ? 'text-gray-400' : 'text-daytona-red');
