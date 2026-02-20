@@ -270,21 +270,33 @@ async function connectToAPI() {
         const allSheetNames = meta.sheets.map(s => s.properties.title).filter(t => !['Resumen', 'Dashboard', 'Config', 'Data'].includes(t));
         
         console.log('Hojas detectadas:', allSheetNames);
+        console.log('Total hojas:', allSheetNames.length);
         
-        // Log detallado: mostrar cada nombre con sus últimos caracteres en códigos Unicode
-        allSheetNames.slice(0, 5).forEach(name => {
-            const last5 = name.slice(-5);
-            const codes = [...last5].map(c => c.charCodeAt(0)).join(',');
-            console.log(`"${name}" -> últimos 5 chars: "${last5}" (Unicode: ${codes})`);
+        // NUEVA LÓGICA: Detectar duplicados
+        // Si hay 20 hojas y todas aparecen duplicadas, las primeras 10 son 2025 y las últimas 10 son 2026
+        const nameCount = {};
+        allSheetNames.forEach(name => {
+            nameCount[name] = (nameCount[name] || 0) + 1;
         });
         
-        // Separar hojas por año - buscar variaciones de " 26" al final
-        const sheets2026 = allSheetNames.filter(name => {
-            const trimmed = name.trim();
-            // Buscar " 26" o cualquier espacio + "26" al final
-            return trimmed.endsWith(' 26') || trimmed.endsWith('\u00A026') || trimmed.match(/\s26$/);
-        });
-        const sheets2025 = allSheetNames.filter(name => !sheets2026.includes(name));
+        console.log('Conteo de nombres:', nameCount);
+        
+        // Si todos los nombres aparecen 2 veces, entonces dividir por mitad
+        const allDuplicated = Object.values(nameCount).every(count => count === 2);
+        
+        let sheets2025, sheets2026;
+        
+        if (allDuplicated && allSheetNames.length === 20) {
+            // Primera mitad = 2025, segunda mitad = 2026
+            const uniqueNames = [...new Set(allSheetNames)];
+            sheets2025 = uniqueNames;
+            sheets2026 = uniqueNames; // Mismos nombres
+            console.log('Detección por duplicados: Primera aparición = 2025, Segunda = 2026');
+        } else {
+            // Fallback: todas son 2025
+            sheets2025 = allSheetNames;
+            sheets2026 = [];
+        }
         
         console.log('Hojas 2025:', sheets2025);
         console.log('Hojas 2026:', sheets2026);
@@ -292,30 +304,42 @@ async function connectToAPI() {
         rawData2025 = [];
         rawData2026 = [];
         
-        // Cargar datos 2025
-        for (const name of sheets2025) {
-            await new Promise(r => setTimeout(r, 250));
-            const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name + '!A:Z')}?key=${API_KEY}`);
-            const json = await res.json();
-            if (json.values && json.values.length > 1) {
-                const processed = parseSheet(json.values, name, '2025');
-                if (processed) rawData2025.push(processed);
+        // Cargar datos 2025 (primera aparición de cada nombre)
+        const processedNames2025 = new Set();
+        for (const name of allSheetNames) {
+            if (sheets2025.includes(name) && !processedNames2025.has(name)) {
+                processedNames2025.add(name);
+                await new Promise(r => setTimeout(r, 250));
+                const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name + '!A:Z')}?key=${API_KEY}`);
+                const json = await res.json();
+                if (json.values && json.values.length > 1) {
+                    const processed = parseSheet(json.values, name, '2025');
+                    if (processed) {
+                        console.log(`2025: ${name} cargada`);
+                        rawData2025.push(processed);
+                    }
+                }
             }
         }
 
-        // Cargar datos 2026
-        for (const name of sheets2026) {
-            await new Promise(r => setTimeout(r, 250));
-            const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name + '!A:Z')}?key=${API_KEY}`);
-            const json = await res.json();
-            if (json.values && json.values.length > 1) {
-                // Quitar " 26" del final (con trim y replace)
-                const cleanName = name.trim().replace(/\s+26$/, '').trim();
-                console.log(`Procesando 2026: "${name}" -> "${cleanName}"`);
-                const processed = parseSheet(json.values, cleanName, '2026');
-                if (processed) {
-                    console.log(`  ✓ Datos cargados para ${cleanName}: ${processed.kpis.length} KPIs`);
-                    rawData2026.push(processed);
+        // Cargar datos 2026 (segunda aparición de cada nombre)
+        const processedNames2026 = new Set();
+        for (const name of allSheetNames) {
+            if (sheets2026.includes(name)) {
+                if (processedNames2026.has(name)) {
+                    // Esta es la segunda aparición = 2026
+                    await new Promise(r => setTimeout(r, 250));
+                    const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name + '!A:Z')}?key=${API_KEY}`);
+                    const json = await res.json();
+                    if (json.values && json.values.length > 1) {
+                        const processed = parseSheet(json.values, name, '2026');
+                        if (processed) {
+                            console.log(`2026: ${name} cargada`);
+                            rawData2026.push(processed);
+                        }
+                    }
+                } else {
+                    processedNames2026.add(name);
                 }
             }
         }
