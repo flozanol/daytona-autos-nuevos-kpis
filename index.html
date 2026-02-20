@@ -269,9 +269,14 @@ async function connectToAPI() {
         const meta = await metaRes.json();
         const allSheetNames = meta.sheets.map(s => s.properties.title).filter(t => !['Resumen', 'Dashboard', 'Config', 'Data'].includes(t));
         
-        // Separar hojas por año
-        const sheets2025 = allSheetNames.filter(name => !name.includes(' 26'));
-        const sheets2026 = allSheetNames.filter(name => name.includes(' 26'));
+        console.log('Hojas detectadas:', allSheetNames);
+        
+        // Separar hojas por año - usar endsWith para detectar " 26"
+        const sheets2026 = allSheetNames.filter(name => name.endsWith(' 26'));
+        const sheets2025 = allSheetNames.filter(name => !name.endsWith(' 26'));
+        
+        console.log('Hojas 2025:', sheets2025);
+        console.log('Hojas 2026:', sheets2026);
 
         rawData2025 = [];
         rawData2026 = [];
@@ -300,9 +305,12 @@ async function connectToAPI() {
             }
         }
         
+        console.log('Datos 2025 cargados:', rawData2025.length);
+        console.log('Datos 2026 cargados:', rawData2026.length);
+        
         if(rawData2025.length === 0 && rawData2026.length === 0) throw new Error("Datos vacíos");
         
-        // Por defecto usar 2026
+        // Por defecto usar 2026 si existe, sino 2025
         rawData = rawData2026.length > 0 ? rawData2026 : rawData2025;
         
         initDashboard();
@@ -390,6 +398,11 @@ function updateAllTables() {
         rawData = rawData2026;
     } else { // 'all'
         rawData = [...rawData2025, ...rawData2026];
+    }
+    
+    if (rawData.length === 0) {
+        alert(`No hay datos disponibles para el año ${selectedYear}`);
+        return;
     }
     
     activeAgencies = getCheckedValues('agency').filter(ag => rawData.some(d => d.agency === ag));
