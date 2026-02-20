@@ -223,13 +223,13 @@ const MONTHS_ORDER = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Ju
 const INVERSE_KPIS = [
     'Inventario Total Unidades',
     'Gasto Financiero',
-    'Antigûedad', 'Antigüedad', 'Antiguedad'
+    'Antigüedad', 'Antigüedad', 'Antiguedad'
 ];
 
 // 2. PROMEDIOS TEMPORALES (Promedio mensual en la columna Total)
 const AVERAGE_KPIS = [
     'Utilidad por auto', 'Margen', 'Efectividad de Cierre',
-    'Inventario Total', 'Gasto Financiero', 'Antigûedad', 'Antigüedad',
+    'Inventario Total', 'Gasto Financiero', 'Antigüedad', 'Antigüedad',
     'Venta de Accesorios', 'Penetración', 'Aprobación',
     'Garantías', 'Seguros', 'Monto promedio', 'Ingresos Totales F&I', '%'
 ];
@@ -269,33 +269,26 @@ async function connectToAPI() {
         const meta = await metaRes.json();
         const allSheetNames = meta.sheets.map(s => s.properties.title).filter(t => !['Resumen', 'Dashboard', 'Config', 'Data'].includes(t));
         
-        console.log('Hojas detectadas:', allSheetNames);
         console.log('Total hojas:', allSheetNames.length);
+        console.log('Hojas detectadas:', allSheetNames);
         
-        // NUEVA LÓGICA: Detectar duplicados
-        // Si hay 20 hojas y todas aparecen duplicadas, las primeras 10 son 2025 y las últimas 10 son 2026
-        const nameCount = {};
-        allSheetNames.forEach(name => {
-            nameCount[name] = (nameCount[name] || 0) + 1;
-        });
-        
-        console.log('Conteo de nombres:', nameCount);
-        
-        // Si todos los nombres aparecen 2 veces, entonces dividir por mitad
-        const allDuplicated = Object.values(nameCount).every(count => count === 2);
-        
+        // ESTRATEGIA SUPER SIMPLE: Si hay 20 hojas, las primeras 10 son 2025 y las últimas 10 son 2026
         let sheets2025, sheets2026;
         
-        if (allDuplicated && allSheetNames.length === 20) {
-            // Primera mitad = 2025, segunda mitad = 2026
-            const uniqueNames = [...new Set(allSheetNames)];
-            sheets2025 = uniqueNames;
-            sheets2026 = uniqueNames; // Mismos nombres
-            console.log('Detección por duplicados: Primera aparición = 2025, Segunda = 2026');
+        if (allSheetNames.length === 20) {
+            sheets2025 = allSheetNames.slice(0, 10);  // Primeras 10
+            sheets2026 = allSheetNames.slice(10, 20); // Últimas 10
+            console.log('Usando estrategia por posición: primeras 10 = 2025, últimas 10 = 2026');
+        } else if (allSheetNames.length === 10) {
+            // Solo hay un año
+            sheets2025 = [];
+            sheets2026 = allSheetNames; // Asumimos que son 2026
+            console.log('Solo 10 hojas detectadas, asumiendo que son 2026');
         } else {
-            // Fallback: todas son 2025
+            // Fallback
             sheets2025 = allSheetNames;
             sheets2026 = [];
+            console.log('Número de hojas inesperado, cargando todo como 2025');
         }
         
         console.log('Hojas 2025:', sheets2025);
@@ -304,42 +297,30 @@ async function connectToAPI() {
         rawData2025 = [];
         rawData2026 = [];
         
-        // Cargar datos 2025 (primera aparición de cada nombre)
-        const processedNames2025 = new Set();
-        for (const name of allSheetNames) {
-            if (sheets2025.includes(name) && !processedNames2025.has(name)) {
-                processedNames2025.add(name);
-                await new Promise(r => setTimeout(r, 250));
-                const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name + '!A:Z')}?key=${API_KEY}`);
-                const json = await res.json();
-                if (json.values && json.values.length > 1) {
-                    const processed = parseSheet(json.values, name, '2025');
-                    if (processed) {
-                        console.log(`2025: ${name} cargada`);
-                        rawData2025.push(processed);
-                    }
+        // Cargar datos 2025
+        for (const name of sheets2025) {
+            await new Promise(r => setTimeout(r, 250));
+            const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name + '!A:Z')}?key=${API_KEY}`);
+            const json = await res.json();
+            if (json.values && json.values.length > 1) {
+                const processed = parseSheet(json.values, name, '2025');
+                if (processed) {
+                    console.log(`✓ 2025: ${name}`);
+                    rawData2025.push(processed);
                 }
             }
         }
 
-        // Cargar datos 2026 (segunda aparición de cada nombre)
-        const processedNames2026 = new Set();
-        for (const name of allSheetNames) {
-            if (sheets2026.includes(name)) {
-                if (processedNames2026.has(name)) {
-                    // Esta es la segunda aparición = 2026
-                    await new Promise(r => setTimeout(r, 250));
-                    const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name + '!A:Z')}?key=${API_KEY}`);
-                    const json = await res.json();
-                    if (json.values && json.values.length > 1) {
-                        const processed = parseSheet(json.values, name, '2026');
-                        if (processed) {
-                            console.log(`2026: ${name} cargada`);
-                            rawData2026.push(processed);
-                        }
-                    }
-                } else {
-                    processedNames2026.add(name);
+        // Cargar datos 2026
+        for (const name of sheets2026) {
+            await new Promise(r => setTimeout(r, 250));
+            const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name + '!A:Z')}?key=${API_KEY}`);
+            const json = await res.json();
+            if (json.values && json.values.length > 1) {
+                const processed = parseSheet(json.values, name, '2026');
+                if (processed) {
+                    console.log(`✓ 2026: ${name}`);
+                    rawData2026.push(processed);
                 }
             }
         }
