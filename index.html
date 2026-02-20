@@ -271,9 +271,20 @@ async function connectToAPI() {
         
         console.log('Hojas detectadas:', allSheetNames);
         
-        // Separar hojas por año - simplificado: si contiene ' 26' es 2026
-        const sheets2026 = allSheetNames.filter(name => name.includes(' 26'));
-        const sheets2025 = allSheetNames.filter(name => !name.includes(' 26'));
+        // Log detallado: mostrar cada nombre con sus últimos caracteres en códigos Unicode
+        allSheetNames.slice(0, 5).forEach(name => {
+            const last5 = name.slice(-5);
+            const codes = [...last5].map(c => c.charCodeAt(0)).join(',');
+            console.log(`"${name}" -> últimos 5 chars: "${last5}" (Unicode: ${codes})`);
+        });
+        
+        // Separar hojas por año - buscar variaciones de " 26" al final
+        const sheets2026 = allSheetNames.filter(name => {
+            const trimmed = name.trim();
+            // Buscar " 26" o cualquier espacio + "26" al final
+            return trimmed.endsWith(' 26') || trimmed.endsWith('\u00A026') || trimmed.match(/\s26$/);
+        });
+        const sheets2025 = allSheetNames.filter(name => !sheets2026.includes(name));
         
         console.log('Hojas 2025:', sheets2025);
         console.log('Hojas 2026:', sheets2026);
@@ -298,11 +309,14 @@ async function connectToAPI() {
             const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name + '!A:Z')}?key=${API_KEY}`);
             const json = await res.json();
             if (json.values && json.values.length > 1) {
-                // Quitar " 26" del final del nombre
-                const cleanName = name.replace(' 26', '');
-                console.log(`Procesando: "${name}" -> "${cleanName}"`);
+                // Quitar " 26" del final (con trim y replace)
+                const cleanName = name.trim().replace(/\s+26$/, '').trim();
+                console.log(`Procesando 2026: "${name}" -> "${cleanName}"`);
                 const processed = parseSheet(json.values, cleanName, '2026');
-                if (processed) rawData2026.push(processed);
+                if (processed) {
+                    console.log(`  ✓ Datos cargados para ${cleanName}: ${processed.kpis.length} KPIs`);
+                    rawData2026.push(processed);
+                }
             }
         }
         
@@ -363,7 +377,10 @@ function parseSheet(values, agencyName, year) {
             return obj;
         }).filter(k => k);
         return { agency: agencyName, year: year, kpis };
-    } catch (e) { return null; }
+    } catch (e) { 
+        console.error('Error parseando hoja:', agencyName, e);
+        return null; 
+    }
 }
 
 function initDashboard() {
