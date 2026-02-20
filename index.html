@@ -202,9 +202,6 @@
                 const sheets2026 = allSheets.filter(s => s.name.endsWith(' 26') || s.name.includes(' 26'));
                 const sheets2025 = allSheets.filter(s => !s.name.endsWith(' 26') && !s.name.includes(' 26'));
 
-                console.log("Hojas 2026:", sheets2026.map(s => s.name));
-                console.log("Hojas 2025:", sheets2025.map(s => s.name));
-
                 rawData2025 = []; rawData2026 = [];
 
                 for (const sheet of sheets2026) {
@@ -234,7 +231,6 @@
 
         function parseSheet(values, agencyName, year) {
             try {
-                // Encontrar la fila de encabezados (que contiene 'KPI' o 'Enero')
                 let headerIdx = values.findIndex(row => 
                     row.some(cell => cell && cell.toString().toLowerCase().includes('kpi')) ||
                     row.some(cell => cell && cell.toString().toLowerCase().includes('enero'))
@@ -244,7 +240,7 @@
                 const headers = values[headerIdx].map(h => h ? h.toString().trim() : '');
                 let kpiIdx = headers.findIndex(h => h.toLowerCase().match(/kpi|concepto|indicador/));
                 if (kpiIdx === -1) kpiIdx = headers.findIndex(h => h.toLowerCase().includes('categor'));
-                if (kpiIdx === -1) kpiIdx = 1; // Fallback a columna B
+                if (kpiIdx === -1) kpiIdx = 1;
 
                 const mapMonths = {};
                 headers.forEach((h, i) => {
@@ -286,7 +282,8 @@
             rawData = (y === '2025') ? rawData2025 : (y === '2026') ? rawData2026 : [...rawData2025, ...rawData2026];
             activeAgencies = getCheckedValues('agency');
             activeMonths = getCheckedValues('month');
-            document.getElementById('historyAgencySelect').innerHTML = activeAgencies.map(a => `<option value="${a}">${a}</option>`).join('');
+            const agencySel = document.getElementById('historyAgencySelect');
+            if (agencySel) agencySel.innerHTML = activeAgencies.map(a => `<option value="${a}">${a}</option>`).join('');
             calculateTopStats(); renderTable1_Global(); updateMonthlyComparison(); updateAgencyHistory(); updateYearComparison();
         }
 
@@ -326,6 +323,7 @@
 
         function updateMonthlyComparison() {
             const m = document.getElementById('compareMonthSelect').value, thead = document.getElementById('monthlyThead'), tbody = document.getElementById('monthlyTbody');
+            if (!m) return;
             thead.innerHTML = `<tr><th>KPI (${m})</th>${activeAgencies.map(a => `<th>${a}</th>`).join('')}</tr>`;
             const kpis = [...new Set(rawData.flatMap(d => d.kpis.map(k => k.name)))];
             tbody.innerHTML = kpis.map(name => {
@@ -341,6 +339,7 @@
 
         function updateAgencyHistory() {
             const ag = document.getElementById('historyAgencySelect').value, data = rawData.filter(d => d.agency === ag), thead = document.getElementById('historyThead'), tbody = document.getElementById('historyTbody');
+            if (!ag) return;
             thead.innerHTML = `<tr><th>KPI</th>${activeMonths.map(m => `<th>${m}</th>`).join('')}</tr>`;
             const kpis = [...new Set(data.flatMap(d => d.kpis.map(k => k.name)))];
             tbody.innerHTML = kpis.map(name => {
@@ -357,8 +356,9 @@
             chartInstances.history = new Chart(ctx, { type: 'line', data: { labels: activeMonths, datasets: [{ label: KPI_TARGET, data: vals, borderColor: '#fd0019', tension: 0.3, fill: true, backgroundColor: 'rgba(253,0,25,0.05)' }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } } } });
         }
 
-        function updateYearComparison() {fix: dynamic header detection and improved KPI parsing for 2025/2026 data
+        function updateYearComparison() {
             const m = document.getElementById('yearCompareMonthSelect').value, thead = document.getElementById('yearCompareThead'), tbody = document.getElementById('yearCompareTbody');
+            if (!m) return;
             const ags = activeAgencies.filter(a => rawData2025.some(d => d.agency === a) && rawData2026.some(d => d.agency === a));
             thead.innerHTML = `<tr><th>KPI</th>${ags.map(a => `<th colspan="2" class="bg-blue-50 text-blue-900 border-b-2 border-blue-200">${a}</th>`).join('')}</tr>`;
             thead.innerHTML += `<tr><th></th>${ags.map(() => `<th class="text-[9px] bg-gray-50">2025</th><th class="text-[9px] bg-green-50">2026</th>`).join('')}</tr>`;
