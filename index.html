@@ -347,7 +347,7 @@
  const m = document.getElementById('yearCompareMonthSelect').value, thead = document.querySelector('#yearCompareTable thead'), tbody = document.getElementById('yearCompareTbody');
  if (!m) return;
  const ags = activeAgencies.filter(a => rawData2025.some(d => d.agency === a) && rawData2026.some(d => d.agency === a));
- thead.innerHTML = `<tr><th>KPI (${m})</th>${ags.map(a => `<th colspan="2" class="bg-blue-50 text-blue-900 border-b-2 border-blue-200">${a}</th>`).join('')}</tr>`;
+ thead.innerHTML = `<tr><th colspan="${1 + ags.length * 2}" class="text-center bg-daytona-red text-white py-1 text-xs uppercase font-bold tracking-wide">Comparativo Anual 2025 vs 2026</th></tr>`; thead.innerHTML += `<tr><th>KPI (${m})</th>${ags.map(a => `<th colspan="2" class="bg-blue-50 text-blue-900 border-b-2 border-blue-200">${a}</th>`).join('')}</tr>`;
  thead.innerHTML += `<tr><th></th>${ags.map(() => `<th class="text-[9px] bg-gray-50">2025</th><th class="text-[9px] bg-green-50">2026</th>`).join('')}</tr>`;
  const kpis = [...new Set([...rawData2025.flatMap(d => d.kpis.map(k => k.name)), ...rawData2026.flatMap(d => d.kpis.map(k => k.name))])];
  tbody.innerHTML = kpis.map(name => {
