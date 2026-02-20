@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="es"><head> <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!DOCTYPE html><html lang="es"><head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0">
  <title>Dashboard Nuevos - Grupo Daytona</title>
  <script src="https://cdn.tailwindcss.com"></script>
  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -304,22 +303,41 @@
  }).join('');
  }
  function updateAgencyHistory() {
- const ag = document.getElementById('historyAgencySelect').value, data = rawData.filter(d => d.agency === ag), thead = document.getElementById('historyThead'), tbody = document.getElementById('historyTbody');
+ const ag = document.getElementById('historyAgencySelect').value, yMode = document.getElementById('yearSelect').value, thead = document.getElementById('historyThead'), tbody = document.getElementById('historyTbody');
  if (!ag) return;
- thead.innerHTML = `<tr><th>KPI</th>${activeMonths.map(m => `<th>${m}</th>`).join('')}</tr>`;
+ let labels = [], datasets = [];
+ if (yMode === 'all') {
+ labels = [...MONTHS_ORDER.map(m => m + ' 25'), ...MONTHS_ORDER.map(m => m + ' 26')];
+ thead.innerHTML = `<tr><th>KPI</th>${labels.map(l => `<th>${l}</th>`).join('')}</tr>`;
+ const d25 = rawData2025.filter(d => d.agency === ag), d26 = rawData2026.filter(d => d.agency === ag);
+ const kpis = [...new Set([...d25.flatMap(d => d.kpis.map(k => k.name)), ...d26.flatMap(d => d.kpis.map(k => k.name))])];
+ tbody.innerHTML = kpis.map(name => {
+ let r = `<tr><td class="font-bold text-xs">${name}</td>`;
+ MONTHS_ORDER.forEach(m => { let v = 0; d25.forEach(d => { const k = d.kpis.find(x => x.name === name); if(k) v += (k[m] || 0); }); r += `<td>${fmt(v)}</td>`; });
+ MONTHS_ORDER.forEach(m => { let v = 0; d26.forEach(d => { const k = d.kpis.find(x => x.name === name); if(k) v += (k[m] || 0); }); r += `<td>${fmt(v)}</td>`; });
+ return r + `</tr>`;
+ }).join('');
+ const vals = [
+ ...MONTHS_ORDER.map(m => { let v = 0; d25.forEach(d => { const k = d.kpis.find(x => x.name.includes(KPI_TARGET)); if(k) v += (k[m] || 0); }); return v; }),
+ ...MONTHS_ORDER.map(m => { let v = 0; d26.forEach(d => { const k = d.kpis.find(x => x.name.includes(KPI_TARGET)); if(k) v += (k[m] || 0); }); return v; })
+ ];
+ datasets.push({ label: KPI_TARGET, data: vals, borderColor: '#fd0019', tension: 0.3, fill: true, backgroundColor: 'rgba(253,0,25,0.05)' });
+ } else {
+ labels = activeMonths;
+ thead.innerHTML = `<tr><th>KPI</th>${labels.map(m => `<th>${m}</th>`).join('')}</tr>`;
+ const data = rawData.filter(d => d.agency === ag);
  const kpis = [...new Set(data.flatMap(d => d.kpis.map(k => k.name)))];
  tbody.innerHTML = kpis.map(name => {
  let r = `<tr><td class="font-bold text-xs">${name}</td>`;
- activeMonths.forEach(m => {
- let v = 0; data.forEach(d => { const k = d.kpis.find(x => x.name === name); if(k) v += (k[m] || 0); });
- r += `<td>${fmt(v)}</td>`;
- });
+ labels.forEach(m => { let v = 0; data.forEach(d => { const k = d.kpis.find(x => x.name === name); if(k) v += (k[m] || 0); }); r += `<td>${fmt(v)}</td>`; });
  return r + `</tr>`;
- });
+ }).join('');
+ const vals = labels.map(m => { let v = 0; data.forEach(d => { const k = d.kpis.find(x => x.name.includes(KPI_TARGET)); if(k) v += (k[m] || 0); }); return v; });
+ datasets.push({ label: KPI_TARGET, data: vals, borderColor: '#fd0019', tension: 0.3, fill: true, backgroundColor: 'rgba(253,0,25,0.05)' });
+ }
  const ctx = document.getElementById('historyChart').getContext('2d');
  if (chartInstances.history) chartInstances.history.destroy();
- const vals = activeMonths.map(m => { let v = 0; data.forEach(d => { const k = d.kpis.find(x => x.name.includes(KPI_TARGET)); if(k) v += (k[m] || 0); }); return v; });
- chartInstances.history = new Chart(ctx, { type: 'line', data: { labels: activeMonths, datasets: [{ label: KPI_TARGET, data: vals, borderColor: '#fd0019', tension: 0.3, fill: true, backgroundColor: 'rgba(253,0,25,0.05)' }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+ chartInstances.history = new Chart(ctx, { type: 'line', data: { labels, datasets }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } } } });
  }
  function updateYearComparison() {
  const m = document.getElementById('yearCompareMonthSelect').value, thead = document.getElementById('yearCompareThead'), tbody = document.getElementById('yearCompareTbody');
