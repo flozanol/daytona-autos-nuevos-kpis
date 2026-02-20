@@ -267,60 +267,84 @@ async function connectToAPI() {
         if (!metaRes.ok) throw new Error(`Error de conexión (${metaRes.status}).`);
 
         const meta = await metaRes.json();
-        const allSheetNames = meta.sheets.map(s => s.properties.title).filter(t => !['Resumen', 'Dashboard', 'Config', 'Data'].includes(t));
         
-        console.log('Total hojas:', allSheetNames.length);
-        console.log('Hojas detectadas:', allSheetNames);
+        // Obtener metadata completa de las hojas (con sheetId e index)
+        const allSheets = meta.sheets
+            .filter(s => !['Resumen', 'Dashboard', 'Config', 'Data'].includes(s.properties.title))
+            .map(s => ({
+                name: s.properties.title,
+                sheetId: s.properties.sheetId,
+                index: s.properties.index
+            }));
         
-        // ESTRATEGIA SUPER SIMPLE: Si hay 20 hojas, las primeras 10 son 2025 y las últimas 10 son 2026
-        let sheets2025, sheets2026;
+        console.log('Total hojas:', allSheets.length);
+        console.log('Hojas con metadata completa:', allSheets);
         
-        if (allSheetNames.length === 20) {
-            sheets2025 = allSheetNames.slice(0, 10);  // Primeras 10
-            sheets2026 = allSheetNames.slice(10, 20); // Últimas 10
-            console.log('Usando estrategia por posición: primeras 10 = 2025, últimas 10 = 2026');
-        } else if (allSheetNames.length === 10) {
-            // Solo hay un año
-            sheets2025 = [];
-            sheets2026 = allSheetNames; // Asumimos que son 2026
-            console.log('Solo 10 hojas detectadas, asumiendo que son 2026');
-        } else {
-            // Fallback
-            sheets2025 = allSheetNames;
-            sheets2026 = [];
-            console.log('Número de hojas inesperado, cargando todo como 2025');
-        }
+        // Contar ocurrencias de cada nombre
+        const nameCount = {};
+        allSheets.forEach(sheet => {
+            nameCount[sheet.name] = (nameCount[sheet.name] || 0) + 1;
+        });
         
-        console.log('Hojas 2025:', sheets2025);
-        console.log('Hojas 2026:', sheets2026);
-
+        console.log('Conteo de nombres:', nameCount);
+        
+        // Agrupar hojas duplicadas
+        const nameGroups = {};
+        allSheets.forEach(sheet => {
+            if (!nameGroups[sheet.name]) {
+                nameGroups[sheet.name] = [];
+            }
+            nameGroups[sheet.name].push(sheet);
+        });
+        
         rawData2025 = [];
         rawData2026 = [];
         
-        // Cargar datos 2025
-        for (const name of sheets2025) {
-            await new Promise(r => setTimeout(r, 250));
-            const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name + '!A:Z')}?key=${API_KEY}`);
-            const json = await res.json();
-            if (json.values && json.values.length > 1) {
-                const processed = parseSheet(json.values, name, '2025');
-                if (processed) {
-                    console.log(`✓ 2025: ${name}`);
-                    rawData2025.push(processed);
+        // Si hay hojas duplicadas, la primera es 2025 y la segunda es 2026
+        for (const [name, sheets] of Object.entries(nameGroups)) {
+            // Ordenar por index para garantizar orden correcto
+            sheets.sort((a, b) => a.index - b.index);
+            
+            if (sheets.length === 2) {
+                // Primera hoja = 2025
+                console.log(`Cargando ${name} (2025) - sheetId: ${sheets[0].sheetId}, index: ${sheets[0].index}`);
+                await new Promise(r => setTimeout(r, 250));
+                const res2025 = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name + '!A:Z')}?key=${API_KEY}`);
+                const json2025 = await res2025.json();
+                if (json2025.values && json2025.values.length > 1) {
+                    const processed = parseSheet(json2025.values, name, '2025');
+                    if (processed) {
+                        console.log(`✓ 2025: ${name}`);
+                        rawData2025.push(processed);
+                    }
                 }
-            }
-        }
-
-        // Cargar datos 2026
-        for (const name of sheets2026) {
-            await new Promise(r => setTimeout(r, 250));
-            const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name + '!A:Z')}?key=${API_KEY}`);
-            const json = await res.json();
-            if (json.values && json.values.length > 1) {
-                const processed = parseSheet(json.values, name, '2026');
-                if (processed) {
-                    console.log(`✓ 2026: ${name}`);
-                    rawData2026.push(processed);
+                
+                // Segunda hoja = 2026
+                console.log(`Cargando ${name} (2026) - sheetId: ${sheets[1].sheetId}, index: ${sheets[1].index}`);
+                await new Promise(r => setTimeout(r, 250));
+                // Usar el rango con el sheetId específico
+                const range2026 = `'${name}'!A:Z`;
+                const res2026 = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range2026)}?key=${API_KEY}`);
+                const json2026 = await res2026.json();
+                if (json2026.values && json2026.values.length > 1) {
+                    const processed = parseSheet(json2026.values, name, '2026');
+                    if (processed) {
+                        console.log(`✓ 2026: ${name}`);
+                        rawData2026.push(processed);
+                    }
+                }
+            } else if (sheets.length === 1) {
+                // Solo hay una hoja con este nombre, asumimos 2026
+                console.log(`Cargando ${name} (solo 1 hoja, asumiendo 2026)`);
+                await new Promise(r => setTimeout(r, 250));
+                const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name + '!A:Z')}?key=${API_KEY}`);
+                const json = await res.json();
+                if (json.values && json.values.length > 1) {
+                    const processed = parseSheet(json.values, name, '2026');
+                    if (processed) {
+                        console.log(`✓ 2026: ${name}`);
+                        rawData2026.push(processed);
+                    }
                 }
             }
         }
