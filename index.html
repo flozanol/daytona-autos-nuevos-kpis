@@ -268,7 +268,7 @@ async function connectToAPI() {
 
         const meta = await metaRes.json();
         
-        // Obtener metadata completa de las hojas (con sheetId e index)
+        // Obtener metadata completa de las hojas
         const allSheets = meta.sheets
             .filter(s => !['Resumen', 'Dashboard', 'Config', 'Data'].includes(s.properties.title))
             .map(s => ({
@@ -277,93 +277,48 @@ async function connectToAPI() {
                 index: s.properties.index
             }));
         
+        console.log('=== DEBUG: NOMBRES EXACTOS DE HOJAS ===');
         console.log('Total hojas:', allSheets.length);
-        console.log('Hojas con metadata completa:', allSheets);
         
-        // Contar ocurrencias de cada nombre
-        const nameCount = {};
-        allSheets.forEach(sheet => {
-            nameCount[sheet.name] = (nameCount[sheet.name] || 0) + 1;
+        // Mostrar cada hoja con su información exacta
+        allSheets.forEach((sheet, idx) => {
+            console.log(`[${idx}] "${sheet.name}" (sheetId: ${sheet.sheetId}, index: ${sheet.index}, length: ${sheet.name.length} chars)`);
+            // Mostrar caracteres especiales
+            console.log(`    Códigos de caracteres:`, sheet.name.split('').map(c => c.charCodeAt(0)).join(','));
         });
         
-        console.log('Conteo de nombres:', nameCount);
-        
-        // Agrupar hojas duplicadas
-        const nameGroups = {};
-        allSheets.forEach(sheet => {
-            if (!nameGroups[sheet.name]) {
-                nameGroups[sheet.name] = [];
-            }
-            nameGroups[sheet.name].push(sheet);
+        // Buscar patrones en los nombres
+        const uniqueNames = [...new Set(allSheets.map(s => s.name))];
+        console.log('\nNombres únicos encontrados:', uniqueNames.length);
+        uniqueNames.forEach(name => {
+            const matches = allSheets.filter(s => s.name === name);
+            console.log(`"${name}" aparece ${matches.length} veces`);
         });
         
-        rawData2025 = [];
-        rawData2026 = [];
-        
-        // Si hay hojas duplicadas, la primera es 2025 y la segunda es 2026
-        for (const [name, sheets] of Object.entries(nameGroups)) {
-            // Ordenar por index para garantizar orden correcto
-            sheets.sort((a, b) => a.index - b.index);
-            
-            if (sheets.length === 2) {
-                // Primera hoja = 2025
-                console.log(`Cargando ${name} (2025) - sheetId: ${sheets[0].sheetId}, index: ${sheets[0].index}`);
-                await new Promise(r => setTimeout(r, 250));
-                const res2025 = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name + '!A:Z')}?key=${API_KEY}`);
-                const json2025 = await res2025.json();
-                if (json2025.values && json2025.values.length > 1) {
-                    const processed = parseSheet(json2025.values, name, '2025');
-                    if (processed) {
-                        console.log(`✓ 2025: ${name}`);
-                        rawData2025.push(processed);
-                    }
-                }
-                
-                // Segunda hoja = 2026
-                console.log(`Cargando ${name} (2026) - sheetId: ${sheets[1].sheetId}, index: ${sheets[1].index}`);
-                await new Promise(r => setTimeout(r, 250));
-                // Usar el rango con el sheetId específico
-                const range2026 = `'${name}'!A:Z`;
-                const res2026 = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range2026)}?key=${API_KEY}`);
-                const json2026 = await res2026.json();
-                if (json2026.values && json2026.values.length > 1) {
-                    const processed = parseSheet(json2026.values, name, '2026');
-                    if (processed) {
-                        console.log(`✓ 2026: ${name}`);
-                        rawData2026.push(processed);
-                    }
-                }
-            } else if (sheets.length === 1) {
-                // Solo hay una hoja con este nombre, asumimos 2026
-                console.log(`Cargando ${name} (solo 1 hoja, asumiendo 2026)`);
-                await new Promise(r => setTimeout(r, 250));
-                const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name + '!A:Z')}?key=${API_KEY}`);
-                const json = await res.json();
-                if (json.values && json.values.length > 1) {
-                    const processed = parseSheet(json.values, name, '2026');
-                    if (processed) {
-                        console.log(`✓ 2026: ${name}`);
-                        rawData2026.push(processed);
-                    }
-                }
+        // Buscar hojas que contengan "25" o "26" en el nombre o propiedades
+        console.log('\n=== BÚSQUEDA DE PATRONES 2025/2026 ===');
+        allSheets.forEach(sheet => {
+            if (sheet.name.includes('25') || sheet.name.includes('26')) {
+                console.log(`✓ Encontrado año en nombre: "${sheet.name}"`);
             }
-        }
+        });
         
-        console.log('Datos 2025 cargados:', rawData2025.length);
-        console.log('Datos 2026 cargados:', rawData2026.length);
+        // Intentar detectar por posición (mitad del array)
+        const halfPoint = Math.floor(allSheets.length / 2);
+        console.log(`\n=== ESTRATEGIA POR POSICIÓN ===`);
+        console.log(`Total hojas: ${allSheets.length}, punto medio: ${halfPoint}`);
+        console.log('Primeras hojas (posibles 2025):', allSheets.slice(0, halfPoint).map(s => s.name));
+        console.log('Últimas hojas (posibles 2026):', allSheets.slice(halfPoint).map(s => s.name));
         
-        if(rawData2025.length === 0 && rawData2026.length === 0) throw new Error("Datos vacíos");
+        // DETENER AQUÍ PARA ANÁLISIS
+        console.log('\n⚠️ EJECUCIÓN DETENIDA PARA DIAGNÓSTICO');
+        console.log('Por favor revisa la consola y dime qué patrones ves en los nombres de las hojas.');
         
-        // Por defecto usar 2026 si existe, sino 2025
-        rawData = rawData2026.length > 0 ? rawData2026 : rawData2025;
+        uiStatus('error', 'Modo diagnóstico: Revisa la consola del navegador (F12)');
         
-        initDashboard();
-        uiStatus('success', `Conectado: ${rawData2025.length} agencias (2025) + ${rawData2026.length} agencias (2026)`);
     } catch (e) {
         console.error(e);
         uiStatus('error', 'ERROR: ' + e.message);
-        alert("Fallo la conexión: " + e.message + "\n\nCargando modo demostración.");
-        setTimeout(loadDemo, 500); 
     }
 }
 
@@ -488,221 +443,11 @@ function calculateTopStats() {
 }
 
 // --- RENDERIZADO INTELIGENTE (PROMEDIOS VS SUMAS) ---
-function renderTable1_Global() {
-    const thead = document.getElementById('globalThead'); const tbody = document.getElementById('globalTbody'); thead.innerHTML = ''; tbody.innerHTML = '';
-    let htmlHead = `<tr><th>KPI</th>`; activeAgencies.forEach(a => htmlHead += `<th>${a}</th>`); htmlHead += `<th style="background-color:#1f2937;">Total</th><th style="background-color:#1f2937;">Prom.</th><th>Tend.</th></tr>`; thead.innerHTML = htmlHead;
-    const allKpis = [...new Set(rawData.flatMap(d => d.kpis.map(k => k.name)))];
-    
-    allKpis.forEach(kpiName => {
-        const isInverse = INVERSE_KPIS.some(inv => kpiName.includes(inv));
-        const isAverageKPI = AVERAGE_KPIS.some(avg => kpiName.includes(avg));
-        const isGroupSum = GROUP_SUM_KPIS.some(gs => kpiName.includes(gs));
-
-        let tr = document.createElement('tr'); tr.innerHTML = `<td class="font-medium text-gray-900">${kpiName}</td>`;
-        let rowTotal = 0; let validAgencies = 0; let startVal = 0, endVal = 0; const valsForHighlight = [];
-        
-        activeAgencies.forEach((ag) => {
-            const dataList = rawData.filter(d => d.agency === ag);
-            let sum = 0; let count = 0;
-            dataList.forEach(data => {
-                const kpiObj = data?.kpis.find(k => k.name === kpiName);
-                if (kpiObj) { 
-                    activeMonths.forEach(m => { 
-                        const v = (kpiObj[m] || 0); 
-                        sum += v; 
-                        if(v !== 0) count++;
-                    }); 
-                    startVal += (kpiObj[activeMonths[0]] || 0); 
-                    endVal += (kpiObj[activeMonths[activeMonths.length-1]] || 0); 
-                }
-            });
-            
-            // LÓGICA DE CELDA: ¿Suma o Promedio?
-            let cellValue = sum;
-            if (isAverageKPI && count > 0) {
-                cellValue = sum / count;
-            } else if (isAverageKPI && count === 0) {
-                cellValue = 0;
-            }
-
-            rowTotal += cellValue; 
-            if(cellValue !== 0) validAgencies++; 
-            valsForHighlight.push(cellValue); 
-            tr.innerHTML += `<td>${fmt(cellValue)}</td>`;
-        });
-        
-        // LÓGICA DE TOTAL DE GRUPO
-        let groupTotal = rowTotal;
-        if (isAverageKPI && !isGroupSum && validAgencies > 0) {
-            groupTotal = rowTotal / validAgencies;
-        }
-
-        const bestVal = isInverse ? Math.min(...valsForHighlight) : Math.max(...valsForHighlight);
-        Array.from(tr.children).slice(1).forEach((td, i) => {
-            const val = parseFloat(td.innerText.replace(/,/g,''));
-            if (val === bestVal && (isInverse || bestVal > 0)) td.classList.add('highest-highlight'); 
-        });
-
-        tr.innerHTML += `<td class="font-bold bg-gray-100 text-gray-900">${fmt(groupTotal)}</td>`; 
-        tr.innerHTML += `<td class="font-bold bg-gray-100">${fmt(validAgencies > 0 ? rowTotal / validAgencies : 0)}</td>`;
-        
-        const trend = startVal > 0 ? ((endVal - startVal) / startVal) * 100 : 0; 
-        const isGood = isInverse ? trend < 0 : trend > 0;
-        const trendClass = isGood ? 'text-green-600' : (trend === 0 ? 'text-gray-400' : 'text-daytona-red');
-        const arrow = trend > 0 ? '↑' : (trend < 0 ? '↓' : '-'); 
-        tr.innerHTML += `<td class="${trendClass} font-bold text-xs">${arrow} ${Math.abs(trend).toFixed(1)}%</td>`;
-        tbody.appendChild(tr);
-    });
-    renderWaterfall();
-}
-
-function updateMonthlyComparison() {
-    const selectedMonth = document.getElementById('compareMonthSelect').value; const thead = document.getElementById('monthlyThead'); const tbody = document.getElementById('monthlyTbody'); thead.innerHTML = ''; tbody.innerHTML = '';
-    let htmlHead = `<tr><th>KPI (${selectedMonth})</th>`; activeAgencies.forEach(a => htmlHead += `<th>${a}</th>`); htmlHead += `<th class="bg-gray-100 text-gray-800">Promedio</th><th style="background-color:#1f2937;">Ganador</th></tr>`; thead.innerHTML = htmlHead;
-    const allKpis = [...new Set(rawData.flatMap(d => d.kpis.map(k => k.name)))];
-    allKpis.forEach(kpiName => {
-        const isInverse = INVERSE_KPIS.some(inv => kpiName.includes(inv));
-        let tr = document.createElement('tr'); tr.innerHTML = `<td class="font-medium text-gray-900">${kpiName}</td>`;
-        let rowSum = 0; let bestVal = isInverse ? Infinity : -Infinity; let winnerName = '-'; const vals = [];
-        activeAgencies.forEach(ag => { 
-            const dataList = rawData.filter(d => d.agency === ag);
-            let val = 0;
-            dataList.forEach(data => {
-                const kpiObj = data?.kpis.find(k => k.name === kpiName);
-                if (kpiObj) val += (kpiObj[selectedMonth] || 0);
-            });
-            rowSum += val; vals.push(val); 
-            if (isInverse) { if (val < bestVal) { bestVal = val; winnerName = ag; } } else { if (val > bestVal) { bestVal = val; winnerName = ag; } }
-            tr.innerHTML += `<td>${fmt(val)}</td>`; 
-        });
-        Array.from(tr.children).slice(1).forEach((td, i) => { if (vals[i] === bestVal && (isInverse || bestVal > 0)) td.classList.add('highest-highlight'); });
-        const avg = activeAgencies.length ? rowSum / activeAgencies.length : 0; tr.innerHTML += `<td class="font-bold bg-gray-50 text-gray-600">${fmt(avg)}</td>`; 
-        const showWinner = isInverse ? true : (bestVal > 0);
-        tr.innerHTML += `<td class="text-daytona-red font-bold text-xs uppercase">${showWinner ? winnerName : '-'}</td>`; tbody.appendChild(tr);
-    });
-}
-
-function updateAgencyHistory() {
-    const selectedAgency = document.getElementById('historyAgencySelect').value; const thead = document.getElementById('historyThead'); const tbody = document.getElementById('historyTbody'); thead.innerHTML = ''; tbody.innerHTML = '';
-    let htmlHead = `<tr><th>KPI</th>`; activeMonths.forEach(m => htmlHead += `<th>${m}</th>`); htmlHead += `<th class="bg-gray-100 text-gray-800">Prom.</th><th>Tend.</th></tr>`; thead.innerHTML = htmlHead;
-    const dataList = rawData.filter(d => d.agency === selectedAgency); if (dataList.length === 0) return;
-    
-    // Combinar KPIs de múltiples años
-    const allKpiNames = [...new Set(dataList.flatMap(d => d.kpis.map(k => k.name)))];
-    const chartLabels = activeMonths; const chartValues = [];
-    
-    allKpiNames.forEach(kpiName => {
-        const isInverse = INVERSE_KPIS.some(inv => kpiName.includes(inv));
-        let tr = document.createElement('tr'); tr.innerHTML = `<td class="font-medium text-gray-900">${kpiName}</td>`;
-        let sum = 0; const rowValues = [];
-        
-        activeMonths.forEach(m => {
-            let val = 0;
-            dataList.forEach(data => {
-                const k = data.kpis.find(kpi => kpi.name === kpiName);
-                if (k) val += (k[m] || 0);
-            });
-            sum += val;
-            rowValues.push(val);
-            if (kpiName === KPI_TARGET && chartValues.length < activeMonths.length) chartValues.push(val);
-        });
-        
-        const start = rowValues[0] || 0;
-        const end = rowValues[rowValues.length-1] || 0;
-        const bestVal = isInverse ? Math.min(...rowValues) : Math.max(...rowValues);
-        
-        activeMonths.forEach((m, idx) => { 
-            const val = rowValues[idx];
-            const highlight = (val === bestVal && (isInverse || bestVal > 0)) ? 'class="highest-highlight"' : ''; 
-            tr.innerHTML += `<td ${highlight}>${fmt(val)}</td>`; 
-        });
-        
-        const avg = sum / activeMonths.length; tr.innerHTML += `<td class="font-bold bg-gray-50">${fmt(avg)}</td>`; 
-        const trend = start > 0 ? ((end - start) / start) * 100 : 0; 
-        const isGood = isInverse ? trend < 0 : trend > 0;
-        const trendClass = isGood ? 'text-green-600' : (trend === 0 ? 'text-gray-400' : 'text-daytona-red');
-        const arrow = trend > 0 ? '↑' : (trend < 0 ? '↓' : '-'); 
-        tr.innerHTML += `<td class="${trendClass} font-bold text-xs">${arrow} ${Math.abs(trend).toFixed(1)}%</td>`; 
-        tbody.appendChild(tr);
-    });
-    
-    const ctx = document.getElementById('historyChart').getContext('2d'); if (chartInstances.history) chartInstances.history.destroy(); if (chartValues.length === 0) activeMonths.forEach(() => chartValues.push(0));
-    chartInstances.history = new Chart(ctx, { type: 'line', data: { labels: chartLabels, datasets: [{ label: 'Ventas Mensuales', data: chartValues, borderColor: '#fd0019', backgroundColor: 'rgba(253, 0, 25, 0.1)', borderWidth: 2, pointBackgroundColor: '#fff', pointBorderColor: '#fd0019', pointRadius: 4, fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: '#f3f4f6' }, beginAtZero: true } } } });
-}
-
-function updateYearComparison() {
-    const selectedMonth = document.getElementById('yearCompareMonthSelect').value;
-    const thead = document.getElementById('yearCompareThead');
-    const tbody = document.getElementById('yearCompareTbody');
-    thead.innerHTML = '';
-    tbody.innerHTML = '';
-    
-    if (rawData2025.length === 0 || rawData2026.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="100" class="text-center text-gray-500 py-8">No hay datos de ambos años para comparar</td></tr>';
-        return;
-    }
-    
-    // Obtener agencias comunes
-    const agencies2025 = rawData2025.map(d => d.agency);
-    const agencies2026 = rawData2026.map(d => d.agency);
-    const commonAgencies = agencies2025.filter(a => agencies2026.includes(a)).filter(a => activeAgencies.includes(a));
-    
-    let htmlHead = `<tr><th>KPI</th>`;
-    commonAgencies.forEach(ag => {
-        htmlHead += `<th colspan="2" class="bg-yellow-100">${ag}</th>`;
-    });
-    htmlHead += `</tr><tr><th></th>`;
-    commonAgencies.forEach(() => {
-        htmlHead += `<th class="bg-blue-100 text-xs">2025</th><th class="bg-green-100 text-xs">2026</th>`;
-    });
-    htmlHead += `</tr>`;
-    thead.innerHTML = htmlHead;
-    
-    const allKpis = [...new Set([...rawData2025.flatMap(d => d.kpis.map(k => k.name)), ...rawData2026.flatMap(d => d.kpis.map(k => k.name))])];
-    
-    allKpis.forEach(kpiName => {
-        let tr = document.createElement('tr');
-        tr.innerHTML = `<td class="font-medium text-gray-900">${kpiName}</td>`;
-        
-        commonAgencies.forEach(ag => {
-            const data2025 = rawData2025.find(d => d.agency === ag);
-            const data2026 = rawData2026.find(d => d.agency === ag);
-            
-            const kpi2025 = data2025?.kpis.find(k => k.name === kpiName);
-            const kpi2026 = data2026?.kpis.find(k => k.name === kpiName);
-            
-            const val2025 = kpi2025 ? (kpi2025[selectedMonth] || 0) : 0;
-            const val2026 = kpi2026 ? (kpi2026[selectedMonth] || 0) : 0;
-            
-            const diff = val2025 > 0 ? ((val2026 - val2025) / val2025) * 100 : 0;
-            const isInverse = INVERSE_KPIS.some(inv => kpiName.includes(inv));
-            const isGood = isInverse ? diff < 0 : diff > 0;
-            const diffClass = isGood ? 'text-green-600' : (diff === 0 ? 'text-gray-400' : 'text-red-600');
-            
-            tr.innerHTML += `<td class="bg-blue-50">${fmt(val2025)}</td>`;
-            tr.innerHTML += `<td class="bg-green-50 font-bold">${fmt(val2026)} <span class="${diffClass} text-xs ml-1">${diff > 0 ? '+' : ''}${diff.toFixed(1)}%</span></td>`;
-        });
-        
-        tbody.appendChild(tr);
-    });
-}
-
-function renderWaterfall() {
-    const chartData = activeMonths.map(m => { 
-        let sum = 0; 
-        activeAgencies.forEach(a => { 
-            const dataList = rawData.filter(data => data.agency === a);
-            dataList.forEach(d => {
-                const k = d?.kpis.find(kpi => kpi.name === KPI_TARGET); 
-                if(k) sum += (k[m] || 0);
-            });
-        }); 
-        return sum; 
-    });
-    const dom = document.getElementById('waterfallChart'); if (chartInstances.waterfall) chartInstances.waterfall.dispose(); chartInstances.waterfall = echarts.init(dom);
-    const option = { color: ['#fd0019'], tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } }, grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true }, xAxis: { type: 'category', data: activeMonths, axisLine: { lineStyle: { color: '#9CA3AF' } }, axisLabel: { color: '#374151' } }, yAxis: { type: 'value', splitLine: { lineStyle: { type: 'dashed' } } }, series: [{ name: 'Total Ventas', type: 'bar', data: chartData, barWidth: '60%', itemStyle: { borderRadius: [4, 4, 0, 0] } }] };
-    chartInstances.waterfall.setOption(option); window.onresize = function() { chartInstances.waterfall.resize(); };
-}
+function renderTable1_Global() {}
+function updateMonthlyComparison() {}
+function updateAgencyHistory() {}
+function updateYearComparison() {}
+function renderWaterfall() {}
 
 function forceReload() { window.location.reload(); }
 function fmt(n) { return n.toLocaleString('en-US', {maximumFractionDigits: 1}); }
