@@ -54,6 +54,14 @@
             border: 1px solid #86efac !important;
         }
 
+        /* Comparativo anual */
+        .year-comparison { 
+            background-color: #fef3c7 !important;
+            color: #92400e !important;
+            font-weight: 700 !important;
+            border: 1px solid #fcd34d !important;
+        }
+
         .loader { border-top-color: #fd0019; -webkit-animation: spinner 1.5s linear infinite; animation: spinner 1.5s linear infinite; }
         @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .input-daytona:focus { border-color: #fd0019; --tw-ring-color: #fd0019; }
@@ -122,16 +130,28 @@
                     <h3 class="text-sm font-bold text-gray-700 flex items-center gap-2"><i class="fas fa-sliders-h text-daytona-red"></i> CONFIGURACIÓN Y FILTROS</h3>
                     <i class="fas fa-chevron-down text-gray-400"></i>
                 </div>
-                <div id="filtersPanel" class="hidden mt-4 pt-4 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div id="filtersPanel" class="hidden mt-4 pt-4 border-t border-gray-100 space-y-4">
+                    <!-- Selector de Año -->
                     <div>
-                        <div class="flex justify-between mb-2"><label class="text-xs font-bold text-gray-500 uppercase">Agencias Visibles</label><div class="space-x-2"><button onclick="toggleAll('agency', true)" class="text-xs text-blue-600 font-medium hover:underline">Todas</button><button onclick="toggleAll('agency', false)" class="text-xs text-gray-500 font-medium hover:underline">Ninguna</button></div></div>
-                        <div id="agencyChecks" class="bg-gray-50 border border-gray-200 p-3 rounded-lg max-h-40 overflow-y-auto scrollbar-thin grid grid-cols-2 gap-2 text-sm text-gray-700"></div>
+                        <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Año de Datos</label>
+                        <select id="yearSelect" onchange="updateAllTables()" class="input-daytona w-full md:w-1/3 bg-white border border-gray-300 text-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-daytona-red focus:border-daytona-red outline-none font-medium">
+                            <option value="2025">2025</option>
+                            <option value="2026" selected>2026</option>
+                            <option value="all">Todos (2025 + 2026)</option>
+                        </select>
                     </div>
-                    <div>
-                        <div class="flex justify-between mb-2"><label class="text-xs font-bold text-gray-500 uppercase">Meses</label><div class="space-x-2"><button onclick="toggleAll('month', true)" class="text-xs text-blue-600 font-medium hover:underline">Todos</button><button onclick="toggleAll('month', false)" class="text-xs text-gray-500 font-medium hover:underline">Ninguno</button></div></div>
-                        <div id="monthChecks" class="bg-gray-50 border border-gray-200 p-3 rounded-lg max-h-40 overflow-y-auto scrollbar-thin grid grid-cols-3 gap-2 text-sm text-gray-700"></div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <div class="flex justify-between mb-2"><label class="text-xs font-bold text-gray-500 uppercase">Agencias Visibles</label><div class="space-x-2"><button onclick="toggleAll('agency', true)" class="text-xs text-blue-600 font-medium hover:underline">Todas</button><button onclick="toggleAll('agency', false)" class="text-xs text-gray-500 font-medium hover:underline">Ninguna</button></div></div>
+                            <div id="agencyChecks" class="bg-gray-50 border border-gray-200 p-3 rounded-lg max-h-40 overflow-y-auto scrollbar-thin grid grid-cols-2 gap-2 text-sm text-gray-700"></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-2"><label class="text-xs font-bold text-gray-500 uppercase">Meses</label><div class="space-x-2"><button onclick="toggleAll('month', true)" class="text-xs text-blue-600 font-medium hover:underline">Todos</button><button onclick="toggleAll('month', false)" class="text-xs text-gray-500 font-medium hover:underline">Ninguno</button></div></div>
+                            <div id="monthChecks" class="bg-gray-50 border border-gray-200 p-3 rounded-lg max-h-40 overflow-y-auto scrollbar-thin grid grid-cols-3 gap-2 text-sm text-gray-700"></div>
+                        </div>
                     </div>
-                    <div class="md:col-span-2 flex justify-end"><button onclick="updateAllTables()" class="bg-gray-800 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-gray-900 transition-colors">Aplicar Cambios</button></div>
+                    <div class="flex justify-end"><button onclick="updateAllTables()" class="bg-gray-800 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-gray-900 transition-colors">Aplicar Cambios</button></div>
                 </div>
             </div>
 
@@ -172,8 +192,21 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Nueva sección: Comparativo Anual -->
+            <section>
+                <div class="flex items-center gap-3 mb-4"><div class="bg-yellow-500 w-1.5 h-8 rounded-full"></div><h2 class="text-xl font-bold text-gray-800">Comparativo Anual (2025 vs 2026)</h2></div>
+                <div class="card-daytona p-6">
+                    <div class="flex flex-col md:flex-row gap-4 items-center mb-6 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+                        <div class="flex-1 w-full"><label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Selecciona Mes</label><select id="yearCompareMonthSelect" onchange="updateYearComparison()" class="input-daytona w-full bg-white border border-gray-300 text-gray-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-daytona-red focus:border-daytona-red outline-none font-medium"></select></div>
+                        <div class="hidden md:block w-px h-10 bg-gray-300"></div>
+                        <div class="flex-none"><button onclick="exportTable('yearCompareTable', 'Daytona_Comparativo_Anual')" class="text-xs bg-green-50 text-green-700 px-4 py-2 rounded-lg border border-green-200 font-bold hover:bg-green-100 transition-colors"><i class="fas fa-file-excel mr-1"></i> Exportar</button></div>
+                    </div>
+                    <div class="overflow-auto scrollbar-thin max-h-[600px]"><table id="yearCompareTable"><thead id="yearCompareThead"></thead><tbody id="yearCompareTbody"></tbody></table></div>
+                </div>
+            </section>
         </div>
-        <footer class="mt-12 text-center py-8 border-t border-gray-200"><p class="text-xs text-gray-400 font-bold uppercase tracking-widest">© 2025 Grupo Daytona | Business Intelligence</p></footer>
+        <footer class="mt-12 text-center py-8 border-t border-gray-200"><p class="text-xs text-gray-400 font-bold uppercase tracking-widest">© 2026 Grupo Daytona | Business Intelligence</p></footer>
     </div>
 
 <script>
@@ -211,6 +244,8 @@ const GROUP_SUM_KPIS = [
 
 // --- ESTADO ---
 let rawData = [];
+let rawData2025 = [];
+let rawData2026 = [];
 let activeAgencies = [];
 let activeMonths = [];
 let chartInstances = {};
@@ -232,21 +267,46 @@ async function connectToAPI() {
         if (!metaRes.ok) throw new Error(`Error de conexión (${metaRes.status}).`);
 
         const meta = await metaRes.json();
-        const sheetNames = meta.sheets.map(s => s.properties.title).filter(t => !['Resumen', 'Dashboard', 'Config', 'Data'].includes(t)); 
+        const allSheetNames = meta.sheets.map(s => s.properties.title).filter(t => !['Resumen', 'Dashboard', 'Config', 'Data'].includes(t));
+        
+        // Separar hojas por año
+        const sheets2025 = allSheetNames.filter(name => !name.includes(' 26'));
+        const sheets2026 = allSheetNames.filter(name => name.includes(' 26'));
 
-        rawData = [];
-        for (const name of sheetNames) {
-            await new Promise(r => setTimeout(r, 250)); // Pausa antibloqueo
+        rawData2025 = [];
+        rawData2026 = [];
+        
+        // Cargar datos 2025
+        for (const name of sheets2025) {
+            await new Promise(r => setTimeout(r, 250));
             const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name + '!A:Z')}?key=${API_KEY}`);
             const json = await res.json();
             if (json.values && json.values.length > 1) {
-                const processed = parseSheet(json.values, name);
-                if (processed) rawData.push(processed);
+                const processed = parseSheet(json.values, name, '2025');
+                if (processed) rawData2025.push(processed);
             }
         }
-        if(rawData.length === 0) throw new Error("Datos vacíos");
+
+        // Cargar datos 2026
+        for (const name of sheets2026) {
+            await new Promise(r => setTimeout(r, 250));
+            const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(name + '!A:Z')}?key=${API_KEY}`);
+            const json = await res.json();
+            if (json.values && json.values.length > 1) {
+                // Quitar el " 26" del nombre para compatibilidad
+                const cleanName = name.replace(' 26', '');
+                const processed = parseSheet(json.values, cleanName, '2026');
+                if (processed) rawData2026.push(processed);
+            }
+        }
+        
+        if(rawData2025.length === 0 && rawData2026.length === 0) throw new Error("Datos vacíos");
+        
+        // Por defecto usar 2026
+        rawData = rawData2026.length > 0 ? rawData2026 : rawData2025;
+        
         initDashboard();
-        uiStatus('success', `Conectado: ${rawData.length} agencias de Nuevos.`);
+        uiStatus('success', `Conectado: ${rawData2025.length} agencias (2025) + ${rawData2026.length} agencias (2026)`);
     } catch (e) {
         console.error(e);
         uiStatus('error', 'ERROR: ' + e.message);
@@ -260,17 +320,20 @@ function loadDemo() {
     const kpis = [KPI_TARGET, 'Inventario Total Unidades', 'Gasto Financiero', 'Margen Autos Nuevos %'];
     rawData = agencies.map(name => ({
         agency: name,
+        year: '2026',
         kpis: kpis.map(k => {
             const row = { name: k };
             MONTHS_ORDER.forEach(m => row[m] = Math.floor(Math.random() * (k.includes('%') ? 20 : 200)));
             return row;
         })
     }));
+    rawData2026 = rawData;
+    rawData2025 = [];
     initDashboard();
     uiStatus('success', 'Modo Demostración Activo');
 }
 
-function parseSheet(values, agencyName) {
+function parseSheet(values, agencyName, year) {
     try {
         const headers = values[0].map(h => h.trim());
         let kpiIdx = headers.findIndex(h => h.toLowerCase().match(/kpi|concepto|indicador/));
@@ -290,41 +353,69 @@ function parseSheet(values, agencyName) {
             });
             return obj;
         }).filter(k => k);
-        return { agency: agencyName, kpis };
+        return { agency: agencyName, year: year, kpis };
     } catch (e) { return null; }
 }
 
 function initDashboard() {
     document.getElementById('dashboardContent').classList.remove('hidden');
+    
+    // Obtener lista única de agencias (sin importar año)
+    const allAgencies = [...new Set([...rawData2025.map(d => d.agency), ...rawData2026.map(d => d.agency)])].sort();
+    
     activeAgencies = rawData.map(d => d.agency).sort();
     activeMonths = [...MONTHS_ORDER]; 
-    renderChecks('agencyChecks', activeAgencies, 'agency');
+    renderChecks('agencyChecks', allAgencies, 'agency');
     renderChecks('monthChecks', MONTHS_ORDER, 'month');
     const monthSel = document.getElementById('compareMonthSelect');
     monthSel.innerHTML = MONTHS_ORDER.map(m => `<option value="${m}">${m}</option>`).join('');
     monthSel.value = MONTHS_ORDER[new Date().getMonth()] || 'Enero'; 
+    
+    const yearMonthSel = document.getElementById('yearCompareMonthSelect');
+    yearMonthSel.innerHTML = MONTHS_ORDER.map(m => `<option value="${m}">${m}</option>`).join('');
+    yearMonthSel.value = MONTHS_ORDER[new Date().getMonth()] || 'Enero';
+    
     const agencySel = document.getElementById('historyAgencySelect');
     agencySel.innerHTML = activeAgencies.map(a => `<option value="${a}">${a}</option>`).join('');
     updateAllTables();
 }
 
 function updateAllTables() {
-    activeAgencies = getCheckedValues('agency');
+    const selectedYear = document.getElementById('yearSelect').value;
+    
+    // Actualizar rawData según selección
+    if (selectedYear === '2025') {
+        rawData = rawData2025;
+    } else if (selectedYear === '2026') {
+        rawData = rawData2026;
+    } else { // 'all'
+        rawData = [...rawData2025, ...rawData2026];
+    }
+    
+    activeAgencies = getCheckedValues('agency').filter(ag => rawData.some(d => d.agency === ag));
     activeMonths = getCheckedValues('month').sort((a,b) => MONTHS_ORDER.indexOf(a) - MONTHS_ORDER.indexOf(b));
     if (activeAgencies.length === 0 || activeMonths.length === 0) { alert("Selecciona al menos una agencia y un mes."); return; }
+    
+    // Actualizar selector de historial
+    const agencySel = document.getElementById('historyAgencySelect');
+    agencySel.innerHTML = activeAgencies.map(a => `<option value="${a}">${a}</option>`).join('');
+    
     calculateTopStats();
     renderTable1_Global();
     updateMonthlyComparison(); 
     updateAgencyHistory();
+    updateYearComparison();
 }
 
 function calculateTopStats() {
     let totalSales = 0; let agencyTotals = {}; let monthTotals = {};
     activeAgencies.forEach(ag => {
         agencyTotals[ag] = 0;
-        const d = rawData.find(data => data.agency === ag);
-        const k = d?.kpis.find(kpi => kpi.name === KPI_TARGET);
-        if (k) { activeMonths.forEach(m => { const val = k[m] || 0; totalSales += val; agencyTotals[ag] += val; monthTotals[m] = (monthTotals[m] || 0) + val; }); }
+        const dataList = rawData.filter(data => data.agency === ag);
+        dataList.forEach(d => {
+            const k = d?.kpis.find(kpi => kpi.name === KPI_TARGET);
+            if (k) { activeMonths.forEach(m => { const val = k[m] || 0; totalSales += val; agencyTotals[ag] += val; monthTotals[m] = (monthTotals[m] || 0) + val; }); }
+        });
     });
     const topAgency = Object.keys(agencyTotals).length > 0 ? Object.keys(agencyTotals).reduce((a, b) => agencyTotals[a] > agencyTotals[b] ? a : b) : '-';
     const bestMonth = Object.keys(monthTotals).length > 0 ? Object.keys(monthTotals).reduce((a, b) => monthTotals[a] > monthTotals[b] ? a : b) : '-';
@@ -351,17 +442,20 @@ function renderTable1_Global() {
         let rowTotal = 0; let validAgencies = 0; let startVal = 0, endVal = 0; const valsForHighlight = [];
         
         activeAgencies.forEach((ag) => {
-            const data = rawData.find(d => d.agency === ag); const kpiObj = data?.kpis.find(k => k.name === kpiName);
+            const dataList = rawData.filter(d => d.agency === ag);
             let sum = 0; let count = 0;
-            if (kpiObj) { 
-                activeMonths.forEach(m => { 
-                    const v = (kpiObj[m] || 0); 
-                    sum += v; 
-                    if(v !== 0) count++;
-                }); 
-                startVal += (kpiObj[activeMonths[0]] || 0); 
-                endVal += (kpiObj[activeMonths[activeMonths.length-1]] || 0); 
-            }
+            dataList.forEach(data => {
+                const kpiObj = data?.kpis.find(k => k.name === kpiName);
+                if (kpiObj) { 
+                    activeMonths.forEach(m => { 
+                        const v = (kpiObj[m] || 0); 
+                        sum += v; 
+                        if(v !== 0) count++;
+                    }); 
+                    startVal += (kpiObj[activeMonths[0]] || 0); 
+                    endVal += (kpiObj[activeMonths[activeMonths.length-1]] || 0); 
+                }
+            });
             
             // LÓGICA DE CELDA: ¿Suma o Promedio?
             let cellValue = sum;
@@ -411,7 +505,12 @@ function updateMonthlyComparison() {
         let tr = document.createElement('tr'); tr.innerHTML = `<td class="font-medium text-gray-900">${kpiName}</td>`;
         let rowSum = 0; let bestVal = isInverse ? Infinity : -Infinity; let winnerName = '-'; const vals = [];
         activeAgencies.forEach(ag => { 
-            const data = rawData.find(d => d.agency === ag); const kpiObj = data?.kpis.find(k => k.name === kpiName); const val = kpiObj ? (kpiObj[selectedMonth] || 0) : 0; 
+            const dataList = rawData.filter(d => d.agency === ag);
+            let val = 0;
+            dataList.forEach(data => {
+                const kpiObj = data?.kpis.find(k => k.name === kpiName);
+                if (kpiObj) val += (kpiObj[selectedMonth] || 0);
+            });
             rowSum += val; vals.push(val); 
             if (isInverse) { if (val < bestVal) { bestVal = val; winnerName = ag; } } else { if (val > bestVal) { bestVal = val; winnerName = ag; } }
             tr.innerHTML += `<td>${fmt(val)}</td>`; 
@@ -426,28 +525,120 @@ function updateMonthlyComparison() {
 function updateAgencyHistory() {
     const selectedAgency = document.getElementById('historyAgencySelect').value; const thead = document.getElementById('historyThead'); const tbody = document.getElementById('historyTbody'); thead.innerHTML = ''; tbody.innerHTML = '';
     let htmlHead = `<tr><th>KPI</th>`; activeMonths.forEach(m => htmlHead += `<th>${m}</th>`); htmlHead += `<th class="bg-gray-100 text-gray-800">Prom.</th><th>Tend.</th></tr>`; thead.innerHTML = htmlHead;
-    const data = rawData.find(d => d.agency === selectedAgency); if (!data) return;
+    const dataList = rawData.filter(d => d.agency === selectedAgency); if (dataList.length === 0) return;
+    
+    // Combinar KPIs de múltiples años
+    const allKpiNames = [...new Set(dataList.flatMap(d => d.kpis.map(k => k.name)))];
     const chartLabels = activeMonths; const chartValues = [];
-    data.kpis.forEach(k => {
-        const isInverse = INVERSE_KPIS.some(inv => k.name.includes(inv));
-        let tr = document.createElement('tr'); tr.innerHTML = `<td class="font-medium text-gray-900">${k.name}</td>`;
-        let sum = 0; let start = k[activeMonths[0]] || 0; let end = k[activeMonths[activeMonths.length-1]] || 0; const rowValues = [];
-        activeMonths.forEach(m => { const val = k[m] || 0; sum += val; rowValues.push(val); if (k.name === KPI_TARGET) chartValues.push(val); });
+    
+    allKpiNames.forEach(kpiName => {
+        const isInverse = INVERSE_KPIS.some(inv => kpiName.includes(inv));
+        let tr = document.createElement('tr'); tr.innerHTML = `<td class="font-medium text-gray-900">${kpiName}</td>`;
+        let sum = 0; const rowValues = [];
+        
+        activeMonths.forEach(m => {
+            let val = 0;
+            dataList.forEach(data => {
+                const k = data.kpis.find(kpi => kpi.name === kpiName);
+                if (k) val += (k[m] || 0);
+            });
+            sum += val;
+            rowValues.push(val);
+            if (kpiName === KPI_TARGET && chartValues.length < activeMonths.length) chartValues.push(val);
+        });
+        
+        const start = rowValues[0] || 0;
+        const end = rowValues[rowValues.length-1] || 0;
         const bestVal = isInverse ? Math.min(...rowValues) : Math.max(...rowValues);
-        activeMonths.forEach((m) => { const val = k[m] || 0; const highlight = (val === bestVal && (isInverse || bestVal > 0)) ? 'class="highest-highlight"' : ''; tr.innerHTML += `<td ${highlight}>${fmt(val)}</td>`; });
+        
+        activeMonths.forEach((m, idx) => { 
+            const val = rowValues[idx];
+            const highlight = (val === bestVal && (isInverse || bestVal > 0)) ? 'class="highest-highlight"' : ''; 
+            tr.innerHTML += `<td ${highlight}>${fmt(val)}</td>`; 
+        });
+        
         const avg = sum / activeMonths.length; tr.innerHTML += `<td class="font-bold bg-gray-50">${fmt(avg)}</td>`; 
         const trend = start > 0 ? ((end - start) / start) * 100 : 0; 
         const isGood = isInverse ? trend < 0 : trend > 0;
         const trendClass = isGood ? 'text-green-600' : (trend === 0 ? 'text-gray-400' : 'text-daytona-red');
         const arrow = trend > 0 ? '↑' : (trend < 0 ? '↓' : '-'); 
-        tr.innerHTML += `<td class="${trendClass} font-bold text-xs">${arrow} ${Math.abs(trend).toFixed(1)}%</td>`; tbody.appendChild(tr);
+        tr.innerHTML += `<td class="${trendClass} font-bold text-xs">${arrow} ${Math.abs(trend).toFixed(1)}%</td>`; 
+        tbody.appendChild(tr);
     });
+    
     const ctx = document.getElementById('historyChart').getContext('2d'); if (chartInstances.history) chartInstances.history.destroy(); if (chartValues.length === 0) activeMonths.forEach(() => chartValues.push(0));
     chartInstances.history = new Chart(ctx, { type: 'line', data: { labels: chartLabels, datasets: [{ label: 'Ventas Mensuales', data: chartValues, borderColor: '#fd0019', backgroundColor: 'rgba(253, 0, 25, 0.1)', borderWidth: 2, pointBackgroundColor: '#fff', pointBorderColor: '#fd0019', pointRadius: 4, fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: '#f3f4f6' }, beginAtZero: true } } } });
 }
 
+function updateYearComparison() {
+    const selectedMonth = document.getElementById('yearCompareMonthSelect').value;
+    const thead = document.getElementById('yearCompareThead');
+    const tbody = document.getElementById('yearCompareTbody');
+    thead.innerHTML = '';
+    tbody.innerHTML = '';
+    
+    if (rawData2025.length === 0 || rawData2026.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="100" class="text-center text-gray-500 py-8">No hay datos de ambos años para comparar</td></tr>';
+        return;
+    }
+    
+    // Obtener agencias comunes
+    const agencies2025 = rawData2025.map(d => d.agency);
+    const agencies2026 = rawData2026.map(d => d.agency);
+    const commonAgencies = agencies2025.filter(a => agencies2026.includes(a)).filter(a => activeAgencies.includes(a));
+    
+    let htmlHead = `<tr><th>KPI</th>`;
+    commonAgencies.forEach(ag => {
+        htmlHead += `<th colspan="2" class="bg-yellow-100">${ag}</th>`;
+    });
+    htmlHead += `</tr><tr><th></th>`;
+    commonAgencies.forEach(() => {
+        htmlHead += `<th class="bg-blue-100 text-xs">2025</th><th class="bg-green-100 text-xs">2026</th>`;
+    });
+    htmlHead += `</tr>`;
+    thead.innerHTML = htmlHead;
+    
+    const allKpis = [...new Set([...rawData2025.flatMap(d => d.kpis.map(k => k.name)), ...rawData2026.flatMap(d => d.kpis.map(k => k.name))])];
+    
+    allKpis.forEach(kpiName => {
+        let tr = document.createElement('tr');
+        tr.innerHTML = `<td class="font-medium text-gray-900">${kpiName}</td>`;
+        
+        commonAgencies.forEach(ag => {
+            const data2025 = rawData2025.find(d => d.agency === ag);
+            const data2026 = rawData2026.find(d => d.agency === ag);
+            
+            const kpi2025 = data2025?.kpis.find(k => k.name === kpiName);
+            const kpi2026 = data2026?.kpis.find(k => k.name === kpiName);
+            
+            const val2025 = kpi2025 ? (kpi2025[selectedMonth] || 0) : 0;
+            const val2026 = kpi2026 ? (kpi2026[selectedMonth] || 0) : 0;
+            
+            const diff = val2025 > 0 ? ((val2026 - val2025) / val2025) * 100 : 0;
+            const isInverse = INVERSE_KPIS.some(inv => kpiName.includes(inv));
+            const isGood = isInverse ? diff < 0 : diff > 0;
+            const diffClass = isGood ? 'text-green-600' : (diff === 0 ? 'text-gray-400' : 'text-red-600');
+            
+            tr.innerHTML += `<td class="bg-blue-50">${fmt(val2025)}</td>`;
+            tr.innerHTML += `<td class="bg-green-50 font-bold">${fmt(val2026)} <span class="${diffClass} text-xs ml-1">${diff > 0 ? '+' : ''}${diff.toFixed(1)}%</span></td>`;
+        });
+        
+        tbody.appendChild(tr);
+    });
+}
+
 function renderWaterfall() {
-    const chartData = activeMonths.map(m => { let sum = 0; activeAgencies.forEach(a => { const d = rawData.find(data => data.agency === a); const k = d?.kpis.find(kpi => kpi.name === KPI_TARGET); if(k) sum += (k[m] || 0); }); return sum; });
+    const chartData = activeMonths.map(m => { 
+        let sum = 0; 
+        activeAgencies.forEach(a => { 
+            const dataList = rawData.filter(data => data.agency === a);
+            dataList.forEach(d => {
+                const k = d?.kpis.find(kpi => kpi.name === KPI_TARGET); 
+                if(k) sum += (k[m] || 0);
+            });
+        }); 
+        return sum; 
+    });
     const dom = document.getElementById('waterfallChart'); if (chartInstances.waterfall) chartInstances.waterfall.dispose(); chartInstances.waterfall = echarts.init(dom);
     const option = { color: ['#fd0019'], tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } }, grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true }, xAxis: { type: 'category', data: activeMonths, axisLine: { lineStyle: { color: '#9CA3AF' } }, axisLabel: { color: '#374151' } }, yAxis: { type: 'value', splitLine: { lineStyle: { type: 'dashed' } } }, series: [{ name: 'Total Ventas', type: 'bar', data: chartData, barWidth: '60%', itemStyle: { borderRadius: [4, 4, 0, 0] } }] };
     chartInstances.waterfall.setOption(option); window.onresize = function() { chartInstances.waterfall.resize(); };
