@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="es"><head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>Dashboard Nuevos - Grupo Daytona</title>
+<!DOCTYPE html><html lang="es"><head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Dashboard Nuevos - Grupo Daytona</title>
  <script src="https://cdn.tailwindcss.com"></script>
  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -118,28 +117,34 @@
  <button onclick="exportTable('globalTable', 'Resumen_Global')" class="text-xs font-bold text-green-600 hover:text-green-700"><i class="fas fa-file-excel mr-1"></i> Excel</button>
  </div>
  <div class="overflow-x-auto max-h-[600px] scrollbar-thin">
- <table id="globalTable"><thead id="globalThead"></thead><tbody id="globalTbody" class="divide-y divide-gray-100"></tbody></table>
+ <table id="globalTable"><thead></thead><tbody id="globalTbody" class="divide-y divide-gray-100"></tbody></table>
  </div>
  </div>
  <div class="grid grid-cols-1 gap-8">
  <div class="card-daytona overflow-hidden">
  <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
  <h2 class="text-sm font-black text-gray-900 uppercase tracking-widest">Detalle Mensual</h2>
+ <div class="flex items-center space-x-4">
  <select id="compareMonthSelect" onchange="updateMonthlyComparison()" class="text-xs font-bold border-none bg-transparent text-daytona-red outline-none"></select>
+ <button onclick="exportTable('monthlyTable', 'Detalle_Mensual')" class="text-xs font-bold text-green-600 hover:text-green-700"><i class="fas fa-file-excel mr-1"></i> Excel</button>
+ </div>
  </div>
  <div class="overflow-x-auto max-h-[500px] scrollbar-thin">
- <table id="monthlyTable"><thead id="monthlyThead"></thead><tbody id="monthlyTbody"></tbody></table>
+ <table id="monthlyTable"><thead></thead><tbody id="monthlyTbody"></tbody></table>
  </div>
  </div>
  <div class="card-daytona overflow-hidden">
  <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
  <h2 class="text-sm font-black text-gray-900 uppercase tracking-widest">Histórico por Agencia</h2>
+ <div class="flex items-center space-x-4">
  <select id="historyAgencySelect" onchange="updateAgencyHistory()" class="text-xs font-bold border-none bg-transparent text-daytona-red outline-none"></select>
+ <button onclick="exportTable('historyTable', 'Historico_Agencia')" class="text-xs font-bold text-green-600 hover:text-green-700"><i class="fas fa-file-excel mr-1"></i> Excel</button>
+ </div>
  </div>
  <div class="p-6">
  <div class="h-64 mb-6"><canvas id="historyChart"></canvas></div>
  <div class="overflow-x-auto max-h-[300px] scrollbar-thin border rounded-lg">
- <table id="historyTable" class="text-[10px]"><thead id="historyThead"></thead><tbody id="historyTbody"></tbody></table>
+ <table id="historyTable" class="text-[10px]"><thead></thead><tbody id="historyTbody"></tbody></table>
  </div>
  </div>
  </div>
@@ -147,10 +152,13 @@
  <div class="card-daytona overflow-hidden border-t-4 border-blue-500">
  <div class="bg-blue-50 px-6 py-4 border-b border-blue-100 flex justify-between items-center">
  <h2 class="text-sm font-black text-blue-900 uppercase tracking-widest"><i class="fas fa-balance-scale mr-2"></i> Comparativo Anual (2025 vs 2026)</h2>
+ <div class="flex items-center space-x-4">
  <select id="yearCompareMonthSelect" onchange="updateYearComparison()" class="text-xs font-bold border-none bg-transparent text-blue-600 outline-none font-black"></select>
+ <button onclick="exportTable('yearCompareTable', 'Comparativo_Anual')" class="text-xs font-bold text-green-600 hover:text-green-700"><i class="fas fa-file-excel mr-1"></i> Excel</button>
+ </div>
  </div>
  <div class="overflow-x-auto scrollbar-thin">
- <table id="yearCompareTable"><thead id="yearCompareThead"></thead><tbody id="yearCompareTbody"></tbody></table>
+ <table id="yearCompareTable"><thead></thead><tbody id="yearCompareTbody"></tbody></table>
  </div>
  </div>
  </section>
@@ -162,7 +170,6 @@
  const SPREADSHEET_ID = "1SeZxO6ggsUUS_bsI_XWYv-RGLe1lyHNhMrppAXSBR9Y";
  const KPI_TARGET = 'Unidades Facturadas';
  const MONTHS_ORDER = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
- const INVERSE_KPIS = ['Inventario Total Unidades', 'Gasto Financiero', 'Antigüedad', 'Antiguedad'];
  const AVERAGE_KPIS = ['Utilidad por auto', 'Margen', 'Efectividad de Cierre', 'Inventario Total', 'Gasto Financiero', 'Antigüedad', 'Venta de Accesorios', 'Penetración', 'Aprobación', 'Garantías', 'Seguros', 'Monto promedio', 'Ingresos Totales F&I', '%'];
  const GROUP_SUM_KPIS = ['Inventario Total', 'Gasto Financiero', 'Venta de Accesorios', 'Ingresos Totales F&I'];
  let rawData2025 = [], rawData2026 = [], rawData = [], activeAgencies = [], activeMonths = [], chartInstances = {};
@@ -209,7 +216,6 @@
  row.some(cell => cell && cell.toString().toLowerCase().includes('kpi')) ||
  row.some(cell => cell && cell.toString().toLowerCase().includes('enero'))
  );
- 
  if (headerIdx === -1) headerIdx = 0;
  const headers = values[headerIdx].map(h => h ? h.toString().trim() : '');
  let kpiIdx = headers.findIndex(h => h.toLowerCase().match(/kpi|concepto|indicador/));
@@ -271,7 +277,7 @@
  document.getElementById('cardAvg').innerText = fmt(total / (activeMonths.length || 1));
  }
  function renderTable1_Global() {
- const thead = document.getElementById('globalThead'), tbody = document.getElementById('globalTbody');
+ const thead = document.querySelector('#globalTable thead'), tbody = document.getElementById('globalTbody');
  thead.innerHTML = `<tr><th>KPI</th>${activeAgencies.map(a => `<th>${a}</th>`).join('')}<th class="bg-gray-800">Total</th></tr>`;
  const kpis = [...new Set(rawData.flatMap(d => d.kpis.map(k => k.name)))];
  tbody.innerHTML = kpis.map(name => {
@@ -283,27 +289,28 @@
  const val = isAvg ? sum / (activeMonths.length || 1) : sum;
  r += `<td>${fmt(val)}</td>`; total += val; if(val !== 0) count++;
  });
+ if (total === 0) return '';
  const final = (isAvg && !GROUP_SUM_KPIS.some(g => name.includes(g))) ? total / (count || 1) : total;
  return r + `<td class="bg-gray-50 font-black">${fmt(final)}</td></tr>`;
  }).join('');
  }
  function updateMonthlyComparison() {
- const m = document.getElementById('compareMonthSelect').value, thead = document.getElementById('monthlyThead'), tbody = document.getElementById('monthlyTbody');
+ const m = document.getElementById('compareMonthSelect').value, thead = document.querySelector('#monthlyTable thead'), tbody = document.getElementById('monthlyTbody');
  if (!m) return;
  thead.innerHTML = `<tr><th>KPI (${m})</th>${activeAgencies.map(a => `<th>${a}</th>`).join('')}</tr>`;
  const kpis = [...new Set(rawData.flatMap(d => d.kpis.map(k => k.name)))];
  tbody.innerHTML = kpis.map(name => {
- let r = `<tr><td class="text-xs font-bold">${name}</td>`;
+ let r = `<tr><td class="text-xs font-bold">${name}</td>`, totalRow = 0;
  activeAgencies.forEach(ag => {
  const list = rawData.filter(d => d.agency === ag);
  let v = 0; list.forEach(d => { const k = d.kpis.find(x => x.name === name); if(k) v += (k[m] || 0); });
- r += `<td>${fmt(v)}</td>`;
+ r += `<td>${fmt(v)}</td>`; totalRow += v;
  });
- return r + `</tr>`;
+ return totalRow === 0 ? '' : r + `</tr>`;
  }).join('');
  }
  function updateAgencyHistory() {
- const ag = document.getElementById('historyAgencySelect').value, yMode = document.getElementById('yearSelect').value, thead = document.getElementById('historyThead'), tbody = document.getElementById('historyTbody');
+ const ag = document.getElementById('historyAgencySelect').value, yMode = document.getElementById('yearSelect').value, thead = document.querySelector('#historyTable thead'), tbody = document.getElementById('historyTbody');
  if (!ag) return;
  let labels = [], datasets = [];
  if (yMode === 'all') {
@@ -312,15 +319,12 @@
  const d25 = rawData2025.filter(d => d.agency === ag), d26 = rawData2026.filter(d => d.agency === ag);
  const kpis = [...new Set([...d25.flatMap(d => d.kpis.map(k => k.name)), ...d26.flatMap(d => d.kpis.map(k => k.name))])];
  tbody.innerHTML = kpis.map(name => {
- let r = `<tr><td class="font-bold text-xs">${name}</td>`;
- MONTHS_ORDER.forEach(m => { let v = 0; d25.forEach(d => { const k = d.kpis.find(x => x.name === name); if(k) v += (k[m] || 0); }); r += `<td>${fmt(v)}</td>`; });
- MONTHS_ORDER.forEach(m => { let v = 0; d26.forEach(d => { const k = d.kpis.find(x => x.name === name); if(k) v += (k[m] || 0); }); r += `<td>${fmt(v)}</td>`; });
- return r + `</tr>`;
+ let r = `<tr><td class="font-bold text-xs">${name}</td>`, totalRow = 0;
+ MONTHS_ORDER.forEach(m => { let v = 0; d25.forEach(d => { const k = d.kpis.find(x => x.name === name); if(k) v += (k[m] || 0); }); r += `<td>${fmt(v)}</td>`; totalRow += v; });
+ MONTHS_ORDER.forEach(m => { let v = 0; d26.forEach(d => { const k = d.kpis.find(x => x.name === name); if(k) v += (k[m] || 0); }); r += `<td>${fmt(v)}</td>`; totalRow += v; });
+ return totalRow === 0 ? '' : r + `</tr>`;
  }).join('');
- const vals = [
- ...MONTHS_ORDER.map(m => { let v = 0; d25.forEach(d => { const k = d.kpis.find(x => x.name.includes(KPI_TARGET)); if(k) v += (k[m] || 0); }); return v; }),
- ...MONTHS_ORDER.map(m => { let v = 0; d26.forEach(d => { const k = d.kpis.find(x => x.name.includes(KPI_TARGET)); if(k) v += (k[m] || 0); }); return v; })
- ];
+ const vals = [...MONTHS_ORDER.map(m => { let v = 0; d25.forEach(d => { const k = d.kpis.find(x => x.name.includes(KPI_TARGET)); if(k) v += (k[m] || 0); }); return v; }), ...MONTHS_ORDER.map(m => { let v = 0; d26.forEach(d => { const k = d.kpis.find(x => x.name.includes(KPI_TARGET)); if(k) v += (k[m] || 0); }); return v; })];
  datasets.push({ label: KPI_TARGET, data: vals, borderColor: '#fd0019', tension: 0.3, fill: true, backgroundColor: 'rgba(253,0,25,0.05)' });
  } else {
  labels = activeMonths;
@@ -328,9 +332,9 @@
  const data = rawData.filter(d => d.agency === ag);
  const kpis = [...new Set(data.flatMap(d => d.kpis.map(k => k.name)))];
  tbody.innerHTML = kpis.map(name => {
- let r = `<tr><td class="font-bold text-xs">${name}</td>`;
- labels.forEach(m => { let v = 0; data.forEach(d => { const k = d.kpis.find(x => x.name === name); if(k) v += (k[m] || 0); }); r += `<td>${fmt(v)}</td>`; });
- return r + `</tr>`;
+ let r = `<tr><td class="font-bold text-xs">${name}</td>`, totalRow = 0;
+ labels.forEach(m => { let v = 0; data.forEach(d => { const k = d.kpis.find(x => x.name === name); if(k) v += (k[m] || 0); }); r += `<td>${fmt(v)}</td>`; totalRow += v; });
+ return totalRow === 0 ? '' : r + `</tr>`;
  }).join('');
  const vals = labels.map(m => { let v = 0; data.forEach(d => { const k = d.kpis.find(x => x.name.includes(KPI_TARGET)); if(k) v += (k[m] || 0); }); return v; });
  datasets.push({ label: KPI_TARGET, data: vals, borderColor: '#fd0019', tension: 0.3, fill: true, backgroundColor: 'rgba(253,0,25,0.05)' });
@@ -340,21 +344,22 @@
  chartInstances.history = new Chart(ctx, { type: 'line', data: { labels, datasets }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } } } });
  }
  function updateYearComparison() {
- const m = document.getElementById('yearCompareMonthSelect').value, thead = document.getElementById('yearCompareThead'), tbody = document.getElementById('yearCompareTbody');
+ const m = document.getElementById('yearCompareMonthSelect').value, thead = document.querySelector('#yearCompareTable thead'), tbody = document.getElementById('yearCompareTbody');
  if (!m) return;
  const ags = activeAgencies.filter(a => rawData2025.some(d => d.agency === a) && rawData2026.some(d => d.agency === a));
- thead.innerHTML = `<tr><th>KPI</th>${ags.map(a => `<th colspan="2" class="bg-blue-50 text-blue-900 border-b-2 border-blue-200">${a}</th>`).join('')}</tr>`;
+ thead.innerHTML = `<tr><th>KPI (${m})</th>${ags.map(a => `<th colspan="2" class="bg-blue-50 text-blue-900 border-b-2 border-blue-200">${a}</th>`).join('')}</tr>`;
  thead.innerHTML += `<tr><th></th>${ags.map(() => `<th class="text-[9px] bg-gray-50">2025</th><th class="text-[9px] bg-green-50">2026</th>`).join('')}</tr>`;
  const kpis = [...new Set([...rawData2025.flatMap(d => d.kpis.map(k => k.name)), ...rawData2026.flatMap(d => d.kpis.map(k => k.name))])];
  tbody.innerHTML = kpis.map(name => {
- let r = `<tr><td class="font-bold text-[10px]">${name}</td>`;
+ let r = `<tr><td class="font-bold text-[10px]">${name}</td>`, totalRow = 0;
  ags.forEach(ag => {
  const d25 = rawData2025.find(d => d.agency === ag), d26 = rawData2026.find(d => d.agency === ag);
  const v25 = d25 ? (d25.kpis.find(k => k.name === name)?.[m] || 0) : 0, v26 = d26 ? (d26.kpis.find(k => k.name === name)?.[m] || 0) : 0;
  const diff = v25 > 0 ? ((v26 - v25) / v25) * 100 : 0;
  r += `<td class="bg-gray-50/50">${fmt(v25)}</td><td class="font-bold">${fmt(v26)} <span class="${diff > 0 ? 'text-green-600' : diff < 0 ? 'text-red-600' : 'text-gray-400'} text-[8px]">${diff > 0 ? '+' : ''}${diff.toFixed(0)}%</span></td>`;
+ totalRow += (v25 + v26);
  });
- return r + `</tr>`;
+ return totalRow === 0 ? '' : r + `</tr>`;
  }).join('');
  }
  function fmt(n) { return n.toLocaleString('en-US', { maximumFractionDigits: 1 }); }
